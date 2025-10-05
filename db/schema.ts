@@ -202,3 +202,6 @@ export const orderItemAddOns = pgTable("order_item_addons", {
         .references(() => menuItemAddOns.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+
+export type User = typeof users.$inferInsert
