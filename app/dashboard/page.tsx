@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 const DashboardPage = async () => {
     const session = await auth.api.getSession({ headers: await headers() })
     if (!session) {
-        redirect("/")
+        redirect("/?auth=sign-in")  // Add query parameter
     }
 
     return (
