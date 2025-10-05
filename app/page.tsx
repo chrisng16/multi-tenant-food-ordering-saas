@@ -1,7 +1,7 @@
 "use client";
 
-import SignInForm from "@/components/home/auth/auth-forms/sign-in-form";
-import SignUpForm from "@/components/home/auth/auth-forms/sign-up-form";
+import SignInForm from "@/components/home/auth/forms/sign-in-form";
+import SignUpForm from "@/components/home/auth/forms/sign-up-form";
 import AuthButtonApple from "@/components/home/auth/social-auth-buttons/auth-btn-apple";
 import AuthButtonFacebook from "@/components/home/auth/social-auth-buttons/auth-btn-facebook";
 import AuthButtonGoogle from "@/components/home/auth/social-auth-buttons/auth-btn-google";

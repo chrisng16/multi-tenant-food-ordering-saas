@@ -1,8 +1,7 @@
 import { boolean, numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-
 export const users = pgTable("users", {
-    id: uuid("id").defaultRandom().primaryKey(),
+    id: text("id").primaryKey(),
     name: text("name").notNull(),
     email: text("email").notNull().unique(),
     emailVerified: boolean("email_verified").default(false).notNull(),
@@ -15,7 +14,7 @@ export const users = pgTable("users", {
 });
 
 export const sessions = pgTable("sessions", {
-    id: uuid("id").primaryKey(),
+    id: text("id").primaryKey(),
     expiresAt: timestamp("expires_at").notNull(),
     token: text("token").notNull().unique(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -24,16 +23,17 @@ export const sessions = pgTable("sessions", {
         .notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
-    userId: uuid("user_id")
+    userId: text("user_id")
         .notNull()
         .references(() => users.id, { onDelete: "cascade" }),
+    activeOrganizationId: text("active_organization_id"),
 });
 
 export const accounts = pgTable("accounts", {
-    id: uuid("id").defaultRandom().primaryKey(),
-    accountId: uuid("account_id").notNull(),
-    providerId: uuid("provider_id").notNull(),
-    userId: uuid("user_id")
+    id: text("id").primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
         .notNull()
         .references(() => users.id, { onDelete: "cascade" }),
     accessToken: text("access_token"),
@@ -50,7 +50,7 @@ export const accounts = pgTable("accounts", {
 });
 
 export const verifications = pgTable("verifications", {
-    id: uuid("id").primaryKey(),
+    id: text("id").primaryKey(),
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
     expiresAt: timestamp("expires_at").notNull(),
@@ -59,6 +59,41 @@ export const verifications = pgTable("verifications", {
         .defaultNow()
         .$onUpdate(() => /* @__PURE__ */ new Date())
         .notNull(),
+});
+
+export const organizations = pgTable("organizations", {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").unique(),
+    logo: text("logo"),
+    createdAt: timestamp("created_at").notNull(),
+    metadata: text("metadata"),
+});
+
+export const members = pgTable("members", {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+        .notNull()
+        .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+        .notNull()
+        .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").default("member").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+});
+
+export const invitations = pgTable("invitations", {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+        .notNull()
+        .references(() => organizations.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: text("role"),
+    status: text("status").default("pending").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    inviterId: text("inviter_id")
+        .notNull()
+        .references(() => users.id, { onDelete: "cascade" }),
 });
 
 
