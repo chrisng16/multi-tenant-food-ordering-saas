@@ -6,60 +6,59 @@ import {
     FormControl,
     FormField,
     FormItem,
+    FormLabel,
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
+import { SignUpFormData, signUpSchema } from "@/schemas/auth"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Eye, EyeOff } from "lucide-react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { toast } from "sonner"
 
-const formSchema = z.object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Please enter a valid email"),
-    password: z
-        .string()
-        .min(8, "Password must be at least 8 characters")
-        .regex(/[0-9]/, "Password must contain a number")
-        .regex(/[A-Z]/, "Password must contain an uppercase letter"),
-})
 
-type FormValues = z.infer<typeof formSchema>
 
 const SignUpForm = () => {
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
+    const [loading, setLoading] = useState<boolean>(false)
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+
+    const form = useForm<SignUpFormData>({
+        resolver: zodResolver(signUpSchema),
         defaultValues: {
             name: "",
             email: "",
             password: "",
+            confirmPassword: "",
         },
+        mode: "onBlur"
     })
 
-    const onSubmit = async (values: FormValues) => {
+    const onSubmit = async (values: SignUpFormData) => {
         console.log("Form submitted:", values)
-        const { name, email, password } = values
+        const { name, email, password, confirmPassword } = values
 
-        const { data, error } = await authClient.signUp.email({
-            email, // user email address
-            password, // user password -> min 8 characters by default
-            name, // user display name
-            callbackURL: "/dashboard" // A URL to redirect to after the user verifies their email (optional)
+        await authClient.signUp.email({
+            email,
+            password,
+            name,
+            callbackURL: "/dashboard"
         }, {
             onRequest: (ctx) => {
-                //show loading
+                setLoading(true)
             },
             onSuccess: (ctx) => {
-                //redirect to the dashboard or sign in page
+                toast.success("Account created! Check your email for the sign-in link.")
+                setLoading(false)
             },
             onError: (ctx) => {
-                // display the error message
-                alert(ctx.error.message);
+                toast.error(ctx.error.message);
+                setLoading(false)
             },
         });
-
-        console.log(data, error)
     }
 
     return (
@@ -73,7 +72,7 @@ const SignUpForm = () => {
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                            <Label htmlFor="name">Name</Label>
+                            <FormLabel htmlFor="name">Name</FormLabel>
                             <FormControl>
                                 <Input id="name" placeholder="Enter your display name" {...field} />
                             </FormControl>
@@ -86,7 +85,7 @@ const SignUpForm = () => {
                     name="email"
                     render={({ field }) => (
                         <FormItem>
-                            <Label htmlFor="email">Email</Label>
+                            <FormLabel htmlFor="email">Email</FormLabel>
                             <FormControl>
                                 <Input id="email" type="email" placeholder="you@example.com" {...field} />
                             </FormControl>
@@ -98,22 +97,73 @@ const SignUpForm = () => {
                     control={form.control}
                     name="password"
                     render={({ field }) => (
-                        <FormItem>
-                            <Label htmlFor="password">Password</Label>
+                        <FormItem className="relative">
+                            <FormLabel htmlFor="password" className="mb-1">
+                                Password
+                            </FormLabel>
+
                             <FormControl>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    autoComplete="new-password"
-                                    {...field}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        autoComplete="current-password"
+                                        {...field}
+                                        className="pr-12"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        className="absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground hover:text-foreground"
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
                             </FormControl>
+
+
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full">
+                <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                        <FormItem className="relative">
+                            <FormLabel htmlFor="confirmPassword" className="mb-1">
+                                Confirm Password
+                            </FormLabel>
+
+                            <FormControl>
+                                <div className="relative">
+                                    <Input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        autoComplete="current-password"
+                                        {...field}
+                                        className="pr-12"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                        className="absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground hover:text-foreground"
+                                        aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
+                            </FormControl>
+
+
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <Button type="submit" className="w-full" disabled={loading}>
                     Create Account
                 </Button>
             </form>

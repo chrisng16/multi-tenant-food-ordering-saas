@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,18 +16,10 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/lib/auth-client"
+import { SignInFormData, signInSchema } from "@/schemas/auth"
 import { Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
 
-const signInSchema = z.object({
-    email: z.string().email("Invalid email address"),
-    password: z
-        .string()
-        .min(8, "Password must be at least 8 characters")
-        .max(50, "Password too long"),
-})
-
-type SignInFormData = z.infer<typeof signInSchema>
 
 const SignInForm = () => {
     const [loading, setLoading] = useState(false)
@@ -40,24 +31,29 @@ const SignInForm = () => {
             email: "",
             password: "",
         },
+        mode: "onBlur"
     })
 
     const onSubmit = async (values: SignInFormData) => {
         setLoading(true)
         console.log("Form submitted:", values)
-        const { data, error } = await authClient.signIn.email({
+        await authClient.signIn.email({
             email: values.email,
             password: values.password,
             callbackURL: "/dashboard"
-        })
-
-        if (error) {
-            toast.error(error.message)
-        } else {
-            toast.success("Check your email for the sign-in link!")
-        }
-
-        setLoading(false)
+        }, {
+            onRequest: (ctx) => {
+                setLoading(true)
+            },
+            onSuccess: (ctx) => {
+                toast.success("Account created! Check your email for the sign-in link.")
+                setLoading(false)
+            },
+            onError: (ctx) => {
+                toast.error(ctx.error.message);
+                setLoading(false)
+            },
+        });
     }
 
     return (
