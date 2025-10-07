@@ -1,32 +1,19 @@
-"use client";
-import SignInForm from "@/components/home/auth/forms/sign-in-form";
-import SignUpForm from "@/components/home/auth/forms/sign-up-form";
-import AuthButtonApple from "@/components/home/auth/social-auth-buttons/auth-btn-apple";
-import AuthButtonFacebook from "@/components/home/auth/social-auth-buttons/auth-btn-facebook";
-import AuthButtonGoogle from "@/components/home/auth/social-auth-buttons/auth-btn-google";
+import AuthModal from "@/components/home/auth/auth-modal";
+import AuthTrigger from "@/components/home/auth/auth-modal-trigger";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AuthTab, useUIStore } from "@/stores/use-ui-store";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense } from "react";
 
+export const metadata = {
+  title: "Order Smarter. Manage Better. | Your App Name",
+  description: "A modern multi-tenant food ordering platform for restaurants and their customers.",
+  openGraph: {
+    title: "Order Smarter. Manage Better.",
+    description: "A modern multi-tenant food ordering platform for restaurants and their customers.",
+    type: "website",
+  },
+};
 
 export default function HomePage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const { isAuthModalOpen, activeAuthTab, openAuthModal, toggleAuthModal, setActiveAuthTab } = useUIStore();
-
-  useEffect(() => {
-    const authParam = searchParams.get('auth');
-    if (authParam === 'sign-in' || authParam === 'sign-up') {
-      openAuthModal(authParam);
-      // Clean the URL
-      router.replace('/');
-    }
-  }, [searchParams, openAuthModal, router]);
-
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
       <div className="text-center max-w-2xl">
@@ -38,66 +25,17 @@ export default function HomePage() {
         </p>
 
         <div className="mt-6 flex justify-center gap-4">
-          <Button size="lg" onClick={() => toggleAuthModal()}>
-            Get Started
-          </Button>
+          <AuthTrigger />
           <Button variant="outline" size="lg">
             Learn More
           </Button>
         </div>
       </div>
 
-      {/* Auth Modal */}
-      <Dialog open={isAuthModalOpen} onOpenChange={toggleAuthModal}>
-        <DialogTrigger asChild></DialogTrigger>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Welcome</DialogTitle>
-          </DialogHeader>
-
-          <Tabs defaultValue={activeAuthTab} onValueChange={(value) => setActiveAuthTab(value as AuthTab)} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="sign-in">Sign In</TabsTrigger>
-              <TabsTrigger value="sign-up">Sign Up</TabsTrigger>
-            </TabsList>
-
-            {/* Sign In */}
-            <TabsContent value="sign-in">
-              <SignInForm />
-            </TabsContent>
-
-            {/* Sign Up */}
-            <TabsContent value="sign-up">
-              <SignUpForm />
-            </TabsContent>
-
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  OR
-                </span>
-              </div>
-            </div>
-
-            {/* Social Sign-In Buttons */}
-            <div className="flex flex-col gap-3">
-              {/* Google */}
-              <AuthButtonGoogle />
-
-              {/* Facebook */}
-              <AuthButtonFacebook />
-
-              {/* Apple */}
-              <AuthButtonApple />
-            </div>
-
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+      {/* Wrap in Suspense for useSearchParams */}
+      <Suspense fallback={null}>
+        <AuthModal />
+      </Suspense>
     </div>
   );
 }

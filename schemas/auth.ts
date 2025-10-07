@@ -3,7 +3,8 @@ import { emailSchema, passwordSchema } from './validators';
 
 export const signInSchema = z.object({
     email: emailSchema,
-    password: passwordSchema
+    password: passwordSchema,
+    rememberMe: z.boolean().optional(),
 })
 export const signUpSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
