@@ -1,25 +1,30 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
+    Field,
+    FieldError,
+    FieldGroup,
+    FieldLabel,
+    FieldSet,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import {
+    InputGroup,
+    InputGroupButton,
+    InputGroupInput,
+} from "@/components/ui/input-group"
 import { authClient } from "@/lib/auth-client"
+import { handleAuthError } from "@/lib/auth-errors-handler"
 import { SignInFormData, signInSchema } from "@/schemas/auth"
-import { Eye, EyeOff } from "lucide-react"
-import { toast } from "sonner"
 
 const SignInForm = () => {
     const [loading, setLoading] = useState(false)
@@ -32,144 +37,129 @@ const SignInForm = () => {
             password: "",
             rememberMe: false,
         },
-        mode: "onBlur"
     })
+
+    const {
+        handleSubmit,
+        register,
+        formState: { errors },
+        watch,
+        setValue,
+    } = form
 
     const onSubmit = async (values: SignInFormData) => {
         setLoading(true)
-
-        await authClient.signIn.email({
-            email: values.email,
-            password: values.password,
-            callbackURL: "/dashboard",
-            rememberMe: values.rememberMe,
-        }, {
-            onRequest: () => {
-                setLoading(true)
+        await authClient.signIn.email(
+            {
+                email: values.email,
+                password: values.password,
+                callbackURL: "/dashboard",
+                rememberMe: values.rememberMe,
             },
-            onSuccess: () => {
-                toast.success("Successfully signed in! Redirecting...")
-            },
-            onError: (ctx) => {
-                toast.error(ctx.error.message)
-                setLoading(false)
-            },
-        })
+            {
+                onRequest: () => setLoading(true),
+                onSuccess: (_ctx) => {
+                    toast.success("Successfully signed in! Redirecting...")
+                },
+                onError: (ctx) => {
+                    handleAuthError(ctx)
+                    setLoading(false)
+                },
+            }
+        )
     }
 
     return (
-        <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="mt-4 flex flex-col gap-4"
-                noValidate
-                autoComplete="on"
-            >
+        <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="mt-4 flex flex-col gap-6"
+            noValidate
+            autoComplete="on"
+        >
+            <FieldSet>
                 {/* Email Field */}
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel htmlFor="signin-email">Email</FormLabel>
-                            <FormControl>
-                                <Input
-                                    id="signin-email"
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    autoComplete="email"
-                                    disabled={loading}
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Password Field */}
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel htmlFor="signin-password">
-                                Password
-                            </FormLabel>
-
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        id="signin-password"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="••••••••"
-                                        autoComplete="current-password"
-                                        disabled={loading}
-                                        {...field}
-                                        className="pr-12"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword((prev) => !prev)}
-                                        className="absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
-                                        tabIndex={-1}
-                                        disabled={loading}
-                                    >
-                                        {showPassword ? (
-                                            <EyeOff className="h-5 w-5" aria-hidden="true" />
-                                        ) : (
-                                            <Eye className="h-5 w-5" aria-hidden="true" />
-                                        )}
-                                    </button>
-                                </div>
-                            </FormControl>
-
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between">
-                    <FormField
-                        control={form.control}
-                        name="rememberMe"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                        disabled={loading}
-                                        id="remember-me"
-                                    />
-                                </FormControl>
-                                <FormLabel
-                                    htmlFor="remember-me"
-                                    className="text-sm font-normal cursor-pointer"
-                                >
-                                    Remember me
-                                </FormLabel>
-                            </FormItem>
-                        )}
+                <Field data-invalid={!!errors.email}>
+                    <FieldLabel htmlFor="signin-email">Email</FieldLabel>
+                    <Input
+                        id="signin-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                        disabled={loading}
+                        aria-invalid={!!errors.email}
+                        {...register("email")}
                     />
+                    <FieldError>{errors.email?.message}</FieldError>
+                </Field>
 
-                    <Link
-                        href="/forgot-password"
-                        className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
-                        tabIndex={loading ? -1 : 0}
-                    >
-                        Forgot password?
-                    </Link>
-                </div>
+                {/* Password + Remember Me */}
+                <Field data-invalid={!!errors.password}>
+                    <div className="flex justify-between items-center">
+                        <FieldLabel htmlFor="signin-password">Password</FieldLabel>
+                        <Link
+                            href="/forgot-password"
+                            className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+                            tabIndex={-1}
+                        >
+                            Forgot password?
+                        </Link>
+                    </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Signing In..." : "Sign In"}
-                </Button>
+                    <FieldGroup className="flex flex-col gap-3">
+                        {/* Password InputGroup */}
+                        <InputGroup>
+                            <InputGroupInput
+                                id="signin-password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                autoComplete="current-password"
+                                disabled={loading}
+                                aria-invalid={!!errors.password}
+                                {...register("password")}
+                            />
+                            <InputGroupButton
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                disabled={loading}
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="h-5 w-5" aria-hidden="true" />
+                                ) : (
+                                    <Eye className="h-5 w-5" aria-hidden="true" />
+                                )}
+                            </InputGroupButton>
+                        </InputGroup>
 
-            </form>
-        </Form>
+                        {/* Remember Me */}
+                        <Field orientation="horizontal" className="items-center gap-2">
+                            <Checkbox
+                                id="remember-me"
+                                checked={watch("rememberMe")}
+                                onCheckedChange={(checked) =>
+                                    setValue("rememberMe", checked as boolean)
+                                }
+                                disabled={loading}
+                            />
+                            <FieldLabel
+                                htmlFor="remember-me"
+                                className="text-sm font-normal cursor-pointer"
+                            >
+                                Remember me
+                            </FieldLabel>
+                        </Field>
+                    </FieldGroup>
+
+                    <FieldError>{errors.password?.message}</FieldError>
+                </Field>
+            </FieldSet>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Signing In..." : "Sign In"}
+            </Button>
+        </form>
     )
 }
 

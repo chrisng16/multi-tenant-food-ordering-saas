@@ -1,7 +1,5 @@
 "use client"
 import { authClient } from "@/lib/auth-client";
-import Link from "next/link";
-import { Button } from "../ui/button";
 
 import {
     DropdownMenu,
@@ -12,6 +10,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { redirect } from "next/navigation";
+import AuthTrigger from "../home/auth/auth-modal-trigger";
 
 const Header = () => {
     const { data: session } = authClient.useSession()
@@ -26,12 +25,7 @@ const Header = () => {
             <header className="bg-white border-b border-gray-200 px-6 py-2 fixed top-0 z-10 w-full">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold text-gray-900">StoreFront</h1>
-
-                    <div className="flex gap-2">
-                        <Button asChild className="text-black bg-white/90 hover:bg-white/80">
-                            <Link href="/">Get Started</Link>
-                        </Button>
-                    </div>
+                    <AuthTrigger />
                 </div>
             </header>
         );

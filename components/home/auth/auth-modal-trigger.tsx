@@ -1,14 +1,17 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/stores/use-ui-store";
 
-export default function AuthTrigger() {
-    const openAuthModal = useUIStore((state) => state.openAuthModal);
+type AuthTriggerProps = {
+  size?: "sm" | "default" | "lg";
+};
 
-    return (
-        <Button size="lg" onClick={() => openAuthModal()}>
-            Get Started
-        </Button>
-    );
+export default function AuthTrigger({ size = "default" }: AuthTriggerProps) {
+  const openAuthModal = useUIStore((state) => state.openAuthModal);
+
+  return (
+    <Button size={size} onClick={() => openAuthModal()}>
+      Get Started
+    </Button>
+  );
 }

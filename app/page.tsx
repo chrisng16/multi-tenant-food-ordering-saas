@@ -25,7 +25,7 @@ export default function HomePage() {
         </p>
 
         <div className="mt-6 flex justify-center gap-4">
-          <AuthTrigger />
+          <AuthTrigger size="lg" />
           <Button variant="outline" size="lg">
             Learn More
           </Button>
