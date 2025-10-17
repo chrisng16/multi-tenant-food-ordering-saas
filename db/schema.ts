@@ -70,6 +70,21 @@ export const organizations = pgTable("organizations", {
     metadata: text("metadata"),
 });
 
+// --------------------
+// TENANT: Stores
+// --------------------
+export const stores = pgTable("stores", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(), // for subdomains or /store/[slug]
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+        .defaultNow()
+        .$onUpdate(() => new Date())
+        .notNull(),
+});
+
 export const members = pgTable("members", {
     id: text("id").primaryKey(),
     organizationId: text("organization_id")
@@ -97,20 +112,6 @@ export const invitations = pgTable("invitations", {
 });
 
 
-// --------------------
-// TENANT: Stores
-// --------------------
-export const stores = pgTable("stores", {
-    id: uuid("id").defaultRandom().primaryKey(),
-    name: text("name").notNull(),
-    slug: text("slug").notNull().unique(), // for subdomains or /store/[slug]
-    description: text("description"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-        .defaultNow()
-        .$onUpdate(() => new Date())
-        .notNull(),
-});
 
 // --------------------
 // Store Users (roles per tenant)

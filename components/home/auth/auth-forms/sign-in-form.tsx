@@ -61,8 +61,15 @@ const SignInForm = () => {
                 onSuccess: (_ctx) => {
                     toast.success("Successfully signed in! Redirecting...")
                 },
-                onError: (ctx) => {
+                onError: async (ctx) => {
                     handleAuthError(ctx)
+
+                    if (ctx.error.status === 403) {
+                        await authClient.sendVerificationEmail({
+                            email: values.email,
+                            callbackURL: "/dashboard", // The redirect URL after verification
+                        });
+                    }
                     setLoading(false)
                 },
             }
