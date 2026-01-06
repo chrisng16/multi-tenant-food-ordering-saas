@@ -1,3 +1,4 @@
+import Header from "@/components/common/header";
 import AuthModal from "@/components/home/auth/auth-modal";
 import AuthTrigger from "@/components/home/auth/auth-modal-trigger";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ export const metadata = {
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+      <Header />
       <div className="text-center max-w-2xl">
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
           Order Smarter. Manage Better.

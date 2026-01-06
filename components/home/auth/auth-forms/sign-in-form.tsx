@@ -49,11 +49,12 @@ const SignInForm = () => {
 
     const onSubmit = async (values: SignInFormData) => {
         setLoading(true)
+        // console.log("/dashboard/overview")
         await authClient.signIn.email(
             {
                 email: values.email,
                 password: values.password,
-                callbackURL: "/dashboard",
+                callbackURL: "/dashboard/overview",
                 rememberMe: values.rememberMe,
             },
             {
@@ -67,7 +68,7 @@ const SignInForm = () => {
                     if (ctx.error.status === 403) {
                         await authClient.sendVerificationEmail({
                             email: values.email,
-                            callbackURL: "/dashboard", // The redirect URL after verification
+                            callbackURL: "/dashboard/overview", // The redirect URL after verification
                         });
                     }
                     setLoading(false)

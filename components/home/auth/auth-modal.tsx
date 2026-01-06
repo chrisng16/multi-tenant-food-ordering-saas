@@ -20,8 +20,8 @@ export default function AuthModal() {
         const authParam = searchParams.get('auth');
         if (authParam === 'sign-in' || authParam === 'sign-up') {
             openAuthModal(authParam);
+            router.replace('/');
         }
-        router.replace('/');
     }, [searchParams, openAuthModal, router]);
 
     return (

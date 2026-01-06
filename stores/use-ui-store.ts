@@ -11,6 +11,7 @@ interface UIState {
 interface UIActions {
     toggleAuthModal: () => void
     openAuthModal: (tab?: AuthTab) => void
+    closeAuthModal: (tab?: AuthTab) => void
     setActiveAuthTab: (tab: AuthTab) => void
 }
 
@@ -21,6 +22,10 @@ export const useUIStore = create<UIStore>((set) => ({
     activeAuthTab: 'sign-in',
     openAuthModal: (tab?: AuthTab) => set({
         isAuthModalOpen: true,
+        ...(tab && { activeAuthTab: tab })
+    }),
+    closeAuthModal: (tab?: AuthTab) => set({
+        isAuthModalOpen: false,
         ...(tab && { activeAuthTab: tab })
     }),
     toggleAuthModal: () => set((state) => ({ isAuthModalOpen: !state.isAuthModalOpen })),

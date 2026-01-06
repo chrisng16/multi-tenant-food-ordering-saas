@@ -13,6 +13,7 @@ import { InputGroup, InputGroupButton, InputGroupInput } from "@/components/ui/i
 import { authClient } from "@/lib/auth-client"
 import { handleAuthError } from "@/lib/auth-errors-handler"
 import { SignUpFormData, signUpSchema } from "@/schemas/auth"
+import { useUIStore } from "@/stores/use-ui-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Check, Eye, EyeOff } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -24,6 +25,8 @@ const SignUpForm = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [passwordFocused, setPasswordFocused] = useState(false)
+
+    const { closeAuthModal } = useUIStore()
 
     const form = useForm<SignUpFormData>({
         resolver: zodResolver(signUpSchema),
@@ -55,7 +58,11 @@ const SignUpForm = () => {
             { email, password, name, callbackURL: "/dashboard" },
             {
                 onRequest: () => setLoading(true),
-                onSuccess: () => { toast.success("Account created! Check your email for verification.") },
+                onSuccess: () => {
+                    toast.success("Account created! Check your email for verification.")
+                    setLoading(false)
+                    closeAuthModal()
+                },
                 onError: (ctx) => {
                     handleAuthError(ctx)
                     setLoading(false)
