@@ -1,5 +1,5 @@
-import { ChartAreaInteractive } from "@/components/dashboard/chart-area-interactive"
-import { SectionCards } from "@/components/dashboard/section-cards"
+import { ChartAreaInteractive } from "@/components/dashboard/overview/chart-area-interactive"
+import { SectionCards } from "@/components/dashboard/overview/section-cards"
 
 export default function Overview() {
   return (

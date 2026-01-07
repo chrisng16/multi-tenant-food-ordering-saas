@@ -16,10 +16,10 @@ import {
 } from "@tabler/icons-react"
 import * as React from "react"
 
-import { NavDocuments } from "@/components/dashboard/nav-documents"
-import { NavMain } from "@/components/dashboard/nav-main"
-import { NavSecondary } from "@/components/dashboard/nav-secondary"
-import { NavUser } from "@/components/dashboard/nav-user"
+import { NavDocuments } from "@/components/dashboard/common/nav-documents"
+import { NavMain } from "@/components/dashboard/common/nav-main"
+import { NavSecondary } from "@/components/dashboard/common/nav-secondary"
+import { NavUser } from "@/components/dashboard/common/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -47,9 +47,9 @@ const data = {
       icon: IconReportSearch,
     },
     {
-      id: "store",
-      title: "Store",
-      url: "/dashboard/store",
+      id: "stores",
+      title: "Stores",
+      url: "/dashboard/stores",
       icon: IconBuildingStore,
     },
     {

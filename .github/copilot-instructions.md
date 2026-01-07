@@ -5,7 +5,7 @@
 This is a **Next.js 16** application using the **App Router** for a multi-tenant food ordering platform. The system supports restaurants (stores) managing menus and customers placing orders.
 
 ### Core Technologies
-- **Framework**: Next.js 16 with Turbopack
+- **Framework**: Next.js 16 with Turbopack, using TypeScript, Tailwind CSS, and Shadcn/ui. Optimized for server components.
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Better Auth with organization plugin for multi-tenancy
 - **UI**: Shadcn/ui components (New York style) with Tailwind CSS
