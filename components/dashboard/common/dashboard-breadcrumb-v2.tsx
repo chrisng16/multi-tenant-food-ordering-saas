@@ -21,84 +21,87 @@ interface DashboardBreadcrumbV2Props {
     }>
 }
 
+type Crumb =
+    | { kind: "link"; label: string; href: string }
+    | { kind: "page"; label: string }
+    | { kind: "switcher"; type: "stores" | "products" }
+
 export function DashboardBreadcrumbV2({ pathname, currentStoreId, stores }: DashboardBreadcrumbV2Props) {
-    const segments = pathname.split('/').filter(Boolean)
+    const segments = pathname.split("/").filter(Boolean)
+    const dashboardSegments = segments.slice(1) // drop 'dashboard'
 
-    // Remove 'dashboard' from segments as it's the root
-    const dashboardSegments = segments.slice(1)
-
-    const getSegmentLabel = (segment: string) => {
-        switch (segment) {
-            case 'overview':
-                return 'Overview'
-            case 'products':
-                return 'Products'
-            case 'stores':
-                return 'Stores'
-            default:
-                return segment.charAt(0).toUpperCase() + segment.slice(1)
-        }
-    }
+    const getSegmentLabel = (segment: string) =>
+        segment === "overview"
+            ? "Overview"
+            : segment === "products"
+                ? "Products"
+                : segment === "stores"
+                    ? "Stores"
+                    : segment.charAt(0).toUpperCase() + segment.slice(1)
 
     const getSegmentHref = (index: number) => {
-        const pathSegments = ['dashboard', ...dashboardSegments.slice(0, index + 1)]
-        return '/' + pathSegments.join('/')
+        const pathSegments = ["dashboard", ...dashboardSegments.slice(0, index + 1)]
+        return "/" + pathSegments.join("/")
     }
 
-    // Special handling for stores/[id] - show "Stores -> [Store Switcher]"
-    if (dashboardSegments[0] === 'stores' && dashboardSegments.length > 1 && currentStoreId && stores) {
-        return (
-            <Breadcrumb>
-                <BreadcrumbList>
-                    <BreadcrumbItem>
-                        <BreadcrumbLink asChild>
-                            <Link href="/dashboard/stores">Stores</Link>
-                        </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator>
-                        <ChevronRight className="h-4 w-4" />
-                    </BreadcrumbSeparator>
-                    <BreadcrumbItem>
-                        <CompactStoreSwitcher
-                            currentStoreId={currentStoreId}
-                            stores={stores}
-                        />
-                    </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
-        )
-    }
+    const crumbs: Crumb[] = []
 
-    // Regular breadcrumb for other pages
-    if (dashboardSegments.length === 0) {
-        return (
-            <Breadcrumb>
-                <BreadcrumbList>
-                    <BreadcrumbItem>
-                        <BreadcrumbPage>Overview</BreadcrumbPage>
-                    </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
-        )
+    // Overview / root
+    if (dashboardSegments.length === 0 || (dashboardSegments.length === 1 && dashboardSegments[0] === "overview")) {
+        crumbs.push({ kind: "page", label: "Overview" })
+    } else if (
+        dashboardSegments[0] === "stores" &&
+        dashboardSegments.length >= 3 &&
+        dashboardSegments[2] === "products" &&
+        currentStoreId &&
+        stores
+    ) {
+        // stores/[storeId]/products(/[productId])
+        crumbs.push({ kind: "link", label: "Products", href: "/dashboard/products" })
+        crumbs.push({ kind: "switcher", type: "products" })
+        if (dashboardSegments.length >= 4) {
+            const productId = dashboardSegments[3]
+            crumbs.push({ kind: "page", label: `Product ${productId}` })
+        }
+    } else if (dashboardSegments[0] === "stores" && dashboardSegments.length > 1 && currentStoreId && stores) {
+        // stores/[id]
+        crumbs.push({ kind: "link", label: "Stores", href: "/dashboard/stores" })
+        crumbs.push({ kind: "switcher", type: "stores" })
+    } else {
+        // Generic: map segments to links/pages
+        dashboardSegments.forEach((seg, i) => {
+            const label = getSegmentLabel(seg)
+            if (i === dashboardSegments.length - 1) {
+                crumbs.push({ kind: "page", label })
+            } else {
+                crumbs.push({ kind: "link", label, href: getSegmentHref(i) })
+            }
+        })
     }
 
     return (
         <Breadcrumb>
             <BreadcrumbList>
-                {dashboardSegments.map((segment, index) => (
-                    <div key={segment} className="flex items-center">
-                        {index > 0 && (
+                {crumbs.map((c, i) => (
+                    <div key={i} className="flex items-center">
+                        {i > 0 && (
                             <BreadcrumbSeparator>
                                 <ChevronRight className="h-4 w-4" />
                             </BreadcrumbSeparator>
                         )}
                         <BreadcrumbItem>
-                            {index === dashboardSegments.length - 1 ? (
-                                <BreadcrumbPage>{getSegmentLabel(segment)}</BreadcrumbPage>
-                            ) : (
+                            {c.kind === "link" && (
                                 <BreadcrumbLink asChild>
-                                    <Link href={getSegmentHref(index)}>{getSegmentLabel(segment)}</Link>
+                                    <Link href={c.href}>{c.label}</Link>
                                 </BreadcrumbLink>
+                            )}
+                            {c.kind === "page" && <BreadcrumbPage>{c.label}</BreadcrumbPage>}
+                            {c.kind === "switcher" && currentStoreId && stores && (
+                                <CompactStoreSwitcher
+                                    currentStoreId={currentStoreId}
+                                    stores={stores}
+                                    type={c.type}
+                                />
                             )}
                         </BreadcrumbItem>
                     </div>

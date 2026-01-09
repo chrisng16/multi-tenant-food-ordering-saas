@@ -14,12 +14,16 @@ const mockStores = [
 export function DashboardHeader() {
   const pathname = usePathname()
 
-  // Extract store ID from URL for store detail pages
+  // Extract store ID from URL for store-related pages
   let currentStoreId: string | undefined
 
-  if (pathname.startsWith('/dashboard/stores/') && pathname !== '/dashboard/stores') {
+  if (pathname.startsWith('/dashboard/stores/')) {
     const segments = pathname.split('/').filter(Boolean)
-    currentStoreId = segments[segments.length - 1] // Last segment should be the store ID
+    // Find the store ID in the path (it should be after 'stores')
+    const storesIndex = segments.indexOf('stores')
+    if (storesIndex !== -1 && segments.length > storesIndex + 1) {
+      currentStoreId = segments[storesIndex + 1]
+    }
   }
 
   return (

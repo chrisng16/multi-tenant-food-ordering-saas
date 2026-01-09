@@ -16,9 +16,10 @@ interface CompactStoreSwitcherProps {
         id: string
         name: string
     }>
+    type?: 'stores' | 'products'
 }
 
-export function CompactStoreSwitcher({ currentStoreId, stores }: CompactStoreSwitcherProps) {
+export function CompactStoreSwitcher({ currentStoreId, stores, type = 'stores' }: CompactStoreSwitcherProps) {
     const router = useRouter()
 
     const currentStore = stores.find(store => store.id === currentStoreId)
@@ -28,14 +29,15 @@ export function CompactStoreSwitcher({ currentStoreId, stores }: CompactStoreSwi
     }
 
     const handleStoreChange = (storeId: string) => {
-        router.push(`/dashboard/stores/${storeId}`)
+        const basePath = `/dashboard/stores/${storeId}`
+        const fullPath = type === 'products' ? `${basePath}/products` : basePath
+        router.push(fullPath)
     }
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 px-2 hover:bg-accent">
-                    {/* <Store className="mr-2 h-4 w-4" /> */}
                     <span className="font-medium">{currentStore.name}</span>
                     <ChevronDown className="ml-2 h-3 w-3" />
                 </Button>
@@ -47,7 +49,6 @@ export function CompactStoreSwitcher({ currentStoreId, stores }: CompactStoreSwi
                         onClick={() => handleStoreChange(store.id)}
                         className={store.id === currentStoreId ? "bg-accent" : ""}
                     >
-                        {/* <Store className="mr-2 h-4 w-4" /> */}
                         {store.name}
                     </DropdownMenuItem>
                 ))}

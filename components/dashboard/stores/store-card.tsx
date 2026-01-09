@@ -12,18 +12,20 @@ interface StoreCardProps {
         slug: string
         description?: string
     }
+    navigatePath?: string
 }
 
-export function StoreCard({ store }: StoreCardProps) {
+export function StoreCard({ store, navigatePath }: StoreCardProps) {
     const router = useRouter()
 
     const handleClick = () => {
-        router.push(`/dashboard/stores/${store.id}`)
+        const path = navigatePath || `/dashboard/stores/${store.id}`
+        router.push(path)
     }
 
     return (
         <Card
-            className="cursor-pointer hover:shadow-md transition-all duration-200 hover:border-primary/50"
+            className="cursor-pointer hover:shadow-md transition-all duration-200"
             onClick={handleClick}
         >
             <CardHeader className="pb-3">
