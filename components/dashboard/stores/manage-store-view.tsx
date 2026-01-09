@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BarChart3, MoreHorizontalIcon, Package, ShoppingCart, Store } from "lucide-react"
 import Link from "next/link"
+import { useState } from "react"
+import { BusinessHoursSelector } from "./business-hours/business-hours-selector"
+import { WeekHours, defaultWeekHours } from "./business-hours/time-utils"
 import { StoreInfoCard } from "./store-info-card"
 
 interface ManageStoreViewProps {
@@ -18,6 +21,7 @@ interface ManageStoreViewProps {
 export function ManageStoreView({
     store
 }: ManageStoreViewProps) {
+    const [hours, setHours] = useState<WeekHours>(defaultWeekHours);
 
     return (
         <div className="flex flex-1 flex-col">
@@ -41,8 +45,12 @@ export function ManageStoreView({
                             </div>
                         </div>
 
-                        <div className="grid md:grid-cols-2 mt-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 mt-6 gap-6">
                             <StoreInfoCard store={store} />
+                            <div>
+                                <BusinessHoursSelector value={hours} onChange={setHours} />
+                                {/* <pre className="mt-6 rounded-md bg-muted p-3 text-xs">{JSON.stringify(hours, null, 2)}</pre> */}
+                            </div>
                         </div>
                     </div>
                 </div>
