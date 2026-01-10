@@ -24,7 +24,7 @@ export default function StoresPage() {
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">My Stores</h1>
+                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">My Stores</h1>
                     <p className="text-muted-foreground">Manage all your stores from one place</p>
                 </div>
 
@@ -46,7 +46,7 @@ export default function StoresPage() {
                 <div className="flex-1 min-h-0 pb-28 flex items-center justify-center">
                     <div className="text-center py-12">
                         <Store className="mx-auto h-12 w-12 text-muted-foreground" />
-                        <h3 className="mt-4 text-lg font-semibold">No stores yet</h3>
+                        <h3 className="mt-4 text-base md:text-lg font-semibold">No stores yet</h3>
                         <p className="mt-2 text-muted-foreground">Get started by creating your first store.</p>
                     </div>
                 </div>

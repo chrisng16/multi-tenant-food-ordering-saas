@@ -24,7 +24,7 @@ const Header = () => {
         return (
             <header className="bg-white border-b border-gray-200 px-6 py-2 fixed top-0 z-10 w-full">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-gray-900">StoreFront</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900">StoreFront</h1>
                     <AuthTrigger />
                 </div>
             </header>
@@ -36,7 +36,7 @@ const Header = () => {
     return (
         <header className="bg-white border-b border-gray-200 px-6 py-2 fixed top-0 z-10 w-full">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger className="hover:bg-neutral-100 rounded-md focus:ring-0 focus:outline focus:bg-accent transition">

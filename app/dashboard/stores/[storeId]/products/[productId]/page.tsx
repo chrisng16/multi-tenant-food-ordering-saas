@@ -96,7 +96,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
                         <div className="px-4 lg:px-6">
                             <div className="text-center py-12">
-                                <h3 className="text-lg font-semibold">Product not found</h3>
+                                <h3 className="text-base md:text-lg font-semibold">Product not found</h3>
                                 <p className="mt-2 text-muted-foreground">
                                     The product you're looking for doesn't exist.
                                 </p>
@@ -115,7 +115,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                     <div className="px-4 lg:px-6">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
+                                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{product.name}</h1>
                                 <p className="text-muted-foreground">
                                     Manage your product details and options
                                 </p>
@@ -133,7 +133,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                         <div className="mt-6">
                             <div className="grid gap-6 md:grid-cols-2">
                                 <div>
-                                    <h2 className="text-lg font-semibold mb-4">Product Details</h2>
+                                    <h2 className="text-base md:text-lg font-semibold mb-4">Product Details</h2>
                                     <div className="space-y-4">
                                         <div>
                                             <label className="text-sm font-medium">Name</label>
@@ -160,7 +160,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                                     </div>
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-semibold mb-4">Options</h2>
+                                    <h2 className="text-base md:text-lg font-semibold mb-4">Options</h2>
                                     {product.subOptions.length > 0 ? (
                                         <div className="space-y-4">
                                             {product.subOptions.map((option) => (

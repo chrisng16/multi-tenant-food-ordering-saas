@@ -113,7 +113,7 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
             <div className="@container/main flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Products</h1>
                         <p className="text-muted-foreground">
                             Manage your store's products and menu items
                         </p>
@@ -142,7 +142,7 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
                                 <div className="mx-auto h-12 w-12 text-muted-foreground">
                                     <Plus className="h-full w-full" />
                                 </div>
-                                <h3 className="mt-4 text-lg font-semibold">No products yet</h3>
+                                <h3 className="mt-4 text-base md:text-lg font-semibold">No products yet</h3>
                                 <p className="mt-2 text-muted-foreground">
                                     Get started by adding your first product.
                                 </p>

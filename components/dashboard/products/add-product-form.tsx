@@ -214,7 +214,7 @@ export function AddProductForm({ onProductAdded, onCancel }: AddProductFormProps
                         <div className="space-y-4">
                             <div className="flex items-center justify-between gap-2 w-full">
                                 <div>
-                                    <h3 className="text-lg font-medium">Product Options</h3>
+                                    <h3 className="text-base md:text-lg font-medium">Product Options</h3>
                                     <p className="text-sm text-muted-foreground">
                                         Add customization options like size, toppings, etc.
                                     </p>

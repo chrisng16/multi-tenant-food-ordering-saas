@@ -35,7 +35,7 @@ export function StoreCard({ store, navigatePath }: StoreCardProps) {
                             <Store className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg">{store.name}</CardTitle>
+                            <CardTitle className="text-base md:text-lg">{store.name}</CardTitle>
                             <CardDescription className="text-sm">
                                 {store.slug}.app.com
                             </CardDescription>

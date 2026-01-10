@@ -29,7 +29,7 @@ export function ManageStoreView({
         <div className="pb-[var(--mobile-padding-bottom)] sm:pb-0 space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{store.name}</h1>
+                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">{store.name}</h1>
                     <p className="text-sm md:text-base text-muted-foreground">
                         Manage your store settings and preferences
                     </p>

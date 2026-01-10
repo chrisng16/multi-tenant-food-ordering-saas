@@ -38,7 +38,7 @@ export function StoreSwitcher({ currentStoreId, stores }: StoreSwitcherProps) {
                     <div className="flex items-center gap-2">
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <Store className="h-4 w-4" />
-                            <h1 className="text-3xl font-bold tracking-tight">{currentStore.name}</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{currentStore.name}</h1>
                             <ChevronDown className="h-4 w-4" />
                         </div>
                     </div>

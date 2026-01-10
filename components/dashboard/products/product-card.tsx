@@ -39,7 +39,7 @@ export function ProductCard({ product, storeId }: ProductCardProps) {
                             <Package className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg">{product.name}</CardTitle>
+                            <CardTitle className="text-base md:text-lg">{product.name}</CardTitle>
                             <CardDescription className="text-sm">
                                 ${product.price.toFixed(2)}
                             </CardDescription>
