@@ -1,5 +1,6 @@
 "use client"
 
+import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar"
 import { AddProductForm } from "@/components/dashboard/products/add-product-form"
 import { ProductCard } from "@/components/dashboard/products/product-card"
 import { Button } from "@/components/ui/button"
@@ -109,61 +110,60 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
 
     return (
         <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2">
-                <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                    <div className="px-4 lg:px-6">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-                                <p className="text-muted-foreground">
-                                    Manage your store's products and menu items
-                                </p>
-                            </div>
-                            <Button onClick={handleAddProduct} className="w-full sm:w-auto">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Add Product
-                            </Button>
-                        </div>
+            <div className="@container/main flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+                        <p className="text-muted-foreground">
+                            Manage your store's products and menu items
+                        </p>
+                    </div>
+                    <Button onClick={handleAddProduct} className="w-full sm:w-auto">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Product
+                    </Button>
+                </div>
 
-                        {showAddForm ? (
-                            <div className="mt-6">
-                                <AddProductForm
-                                    onProductAdded={handleProductAdded}
-                                    onCancel={handleCancelAdd}
-                                />
+                {showAddForm ? (
+                    <AddProductForm
+                        onProductAdded={handleProductAdded}
+                        onCancel={handleCancelAdd}
+                    />
+                ) : (
+                    <>
+                        {products[storeId].length > 0 ? (
+                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                {products[storeId].map((product) => (
+                                    <ProductCard key={product.id} product={product} storeId={storeId} />
+                                ))}
                             </div>
                         ) : (
-                            <>
-                                {products[storeId].length > 0 ? (
-                                    <div className="mt-6">
-                                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                            {products[storeId].map((product) => (
-                                                <ProductCard key={product.id} product={product} storeId={storeId} />
-                                            ))}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="mt-6">
-                                        <div className="text-center py-12">
-                                            <div className="mx-auto h-12 w-12 text-muted-foreground">
-                                                <Plus className="h-full w-full" />
-                                            </div>
-                                            <h3 className="mt-4 text-lg font-semibold">No products yet</h3>
-                                            <p className="mt-2 text-muted-foreground">
-                                                Get started by adding your first product.
-                                            </p>
-                                            <Button onClick={handleAddProduct} className="mt-4">
-                                                <Plus className="mr-2 h-4 w-4" />
-                                                Add Your First Product
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                            </>
+                            <div className="text-center py-12">
+                                <div className="mx-auto h-12 w-12 text-muted-foreground">
+                                    <Plus className="h-full w-full" />
+                                </div>
+                                <h3 className="mt-4 text-lg font-semibold">No products yet</h3>
+                                <p className="mt-2 text-muted-foreground">
+                                    Get started by adding your first product.
+                                </p>
+                                <Button onClick={handleAddProduct} className="mt-4">
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Add Your First Product
+                                </Button>
+                            </div>
                         )}
-                    </div>
-                </div>
+                    </>
+                )}
             </div>
+
+            {/* Mobile fixed bottom action bar */}
+            <MobileActionBar>
+                <Button onClick={handleAddProduct} className="w-full">
+                    <Plus className="h-4 w-4" />
+                    <span className="hidden sm:inline">Add Product</span>
+                    <span className="sm:hidden">Add</span>
+                </Button>
+            </MobileActionBar>
         </div>
     )
 }

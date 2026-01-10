@@ -1,8 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { BarChart3, MoreHorizontalIcon, Package, ShoppingCart, Store } from "lucide-react"
+import { BarChart3, MoreHorizontalIcon, Package, ShoppingCart, Store, Zap } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { BusinessHoursSelector } from "./business-hours/business-hours-selector"
@@ -24,35 +25,30 @@ export function ManageStoreView({
     const [hours, setHours] = useState<WeekHours>(defaultWeekHours);
 
     return (
-        <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2">
-                <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                    <div className="px-4 lg:px-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h1 className="text-lg lg:text-2xl font-bold tracking-tight">{store.name}</h1>
-                                <p className="text-sm md:text-base text-muted-foreground">
-                                    Manage your store settings and preferences
-                                </p>
-                            </div>
-                            <div className="flex gap-2">
-                                <Button size="sm" className="xl:hidden hidden sm:flex w-auto">
-                                    <Store className="h-4 w-4" />
-                                    <span className="inline">View Store</span>
-                                </Button>
-                                <QuickActions store={store} />
-                                <MiniQuickActions store={store} />
-                            </div>
-                        </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 mt-6 gap-6">
-                            <StoreInfoCard store={store} />
-                            <div>
-                                <BusinessHoursSelector value={hours} onChange={setHours} />
-                                {/* <pre className="mt-6 rounded-md bg-muted p-3 text-xs">{JSON.stringify(hours, null, 2)}</pre> */}
-                            </div>
-                        </div>
-                    </div>
+        <div className="pb-[var(--mobile-padding-bottom)] sm:pb-0 space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">{store.name}</h1>
+                    <p className="text-sm md:text-base text-muted-foreground">
+                        Manage your store settings and preferences
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button size="sm" className="xl:hidden hidden sm:flex w-auto">
+                        <Store className="h-4 w-4" />
+                        <span className="inline">View Store</span>
+                    </Button>
+                    <QuickActions store={store} />
+                    <MiniQuickActions store={store} />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <StoreInfoCard store={store} />
+                <div>
+                    <BusinessHoursSelector value={hours} onChange={setHours} />
+                    {/* <pre className="mt-6 rounded-md bg-muted p-3 text-xs">{JSON.stringify(hours, null, 2)}</pre> */}
                 </div>
             </div>
         </div>
@@ -90,10 +86,10 @@ function QuickActions({ store }: { store: { id: string } }) {
         </div >)
 }
 
-function MiniQuickActions({ store }: { store: { id: string } }) {
+export function MiniQuickActions({ store }: { store: { id: string } }) {
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild className="xl:hidden flex">
+            <DropdownMenuTrigger asChild className="xl:hidden hidden sm:flex">
                 <Button aria-label="Open menu" size="icon-sm">
                     <MoreHorizontalIcon />
                 </Button>
@@ -128,4 +124,59 @@ function MiniQuickActions({ store }: { store: { id: string } }) {
                 </DropdownMenuGroup>
             </DropdownMenuContent>
         </DropdownMenu>)
+}
+
+export function ActionBarQuickActions({ store }: { store: { id: string } }) {
+    return (
+        <Drawer>
+            <DrawerTrigger asChild>
+                <Button variant="action-bar-primary" className="h-11 w-full">
+                    <Zap className="size-3" />Quick Actions
+                </Button>
+            </DrawerTrigger>
+            <DrawerContent>
+                <DrawerHeader>
+                    <DrawerTitle className="flex items-center justify-center gap-2"><Zap className="size-4" />Quick Actions</DrawerTitle>
+                    <DrawerDescription>Select an action to perform</DrawerDescription>
+                </DrawerHeader>
+                <div className="flex flex-col p-6 pt-0 space-y-4">
+                    <DrawerClose asChild>
+                        <Button variant="secondary" asChild>
+                            <Link href={`/dashboard/stores/${store.id}/analytics`}>
+                                <Store className="h-4 w-4" />
+                                <span className="inline">View Store</span>
+                            </Link>
+                        </Button>
+                    </DrawerClose>
+                    <DrawerClose asChild>
+                        <Button variant="secondary" asChild>
+                            <Link href={`/dashboard/stores/${store.id}/products`}>
+                                <Package className="h-4 w-4" />
+                                <span className="inline">Manage Products</span>
+                            </Link>
+                        </Button>
+                    </DrawerClose>
+                    <DrawerClose asChild>
+                        <Button variant="secondary" asChild>
+                            <Link href={`/dashboard/stores/${store.id}/orders`}>
+                                <ShoppingCart className="h-4 w-4" />
+                                <span className="inline">Manage Orders</span>
+                            </Link>
+                        </Button>
+                    </DrawerClose>
+                    <DrawerClose asChild>
+                        <Button variant="secondary" asChild>
+                            <Link href={`/dashboard/stores/${store.id}/analytics`}>
+                                <BarChart3 className="h-4 w-4" />
+                                <span className="inline">View Analytics</span>
+                            </Link>
+                        </Button>
+                    </DrawerClose>
+                    <DrawerClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                    </DrawerClose>
+                </div>
+            </DrawerContent>
+        </Drawer>
+    )
 }

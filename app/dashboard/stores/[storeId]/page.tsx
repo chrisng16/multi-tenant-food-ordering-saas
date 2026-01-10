@@ -4,7 +4,9 @@
 import { notFound } from "next/navigation"
 import { use } from "react"
 
-import { ManageStoreView } from "@/components/dashboard/stores/manage-store-view"
+import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar"
+import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
+import { ActionBarQuickActions, ManageStoreView } from "@/components/dashboard/stores/manage-store-view"
 
 // Mock data - in real app, this would come from API/database
 const mockStores = [
@@ -31,6 +33,13 @@ export default function StorePage({ params }: StorePageProps) {
     }
 
     return (
-        <ManageStoreView store={store} />
+        <>
+            <ManageStoreView store={store} />
+            <MobileActionBar>
+                <MABTemplate showRightButton={false} >
+                    <ActionBarQuickActions store={store} />
+                </MABTemplate>
+            </MobileActionBar >
+        </>
     )
 }

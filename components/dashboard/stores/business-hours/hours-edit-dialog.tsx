@@ -202,7 +202,7 @@ export function HoursEditDialog(props: HoursEditDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[640px]">
+            <DialogContent className="sm:max-w-xl">
                 <DialogHeader>
                     <DialogTitle>Select days &amp; time</DialogTitle>
                 </DialogHeader>
@@ -215,7 +215,7 @@ export function HoursEditDialog(props: HoursEditDialogProps) {
                             <Button
                                 key={d}
                                 type="button"
-                                variant={selected ? "secondary" : "outline"}
+                                variant={selected ? "default" : "outline"}
                                 size="icon"
                                 aria-pressed={selected}
                                 aria-label={`Toggle ${DAY_LABELS[d]}`}

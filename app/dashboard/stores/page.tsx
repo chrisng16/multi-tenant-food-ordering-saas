@@ -1,6 +1,8 @@
 "use client"
 
-import { MobileActionBar } from "@/components/common/mobile-action-bar"
+import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar"
+import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
+import CreateStoreButton from "@/components/dashboard/stores/create-store-button"
 import { CreateStoreModal } from "@/components/dashboard/stores/create-store-modal"
 import { StoreCard } from "@/components/dashboard/stores/store-card"
 import { Store } from "lucide-react"
@@ -18,53 +20,43 @@ const mockStores = [
 
 export default function StoresPage() {
     return (
+        <>
 
-        <div className="flex h-[90dvh] sm:h-[calc(100dvh-var(--header-height)-16px)] flex-col overflow-hidden">
-            <div className="@container/main flex flex-1 flex-col min-h-0">
-                <div className="flex flex-1 flex-col gap-2 min-h-0">
-                    <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6 min-h-0">
-                        <div className="flex flex-1 flex-col px-4 lg:px-6 min-h-0">
-                            {/* Header */}
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <h1 className="text-3xl font-bold tracking-tight">My Stores</h1>
-                                    <p className="text-muted-foreground">Manage all your stores from one place</p>
-                                </div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">My Stores</h1>
+                    <p className="text-muted-foreground">Manage all your stores from one place</p>
+                </div>
 
-                                <div className="hidden sm:block">
-                                    <CreateStoreModal />
-                                </div>
-                            </div>
-
-                            {mockStores.length > 0 ? (
-                                <div className="mt-6 flex-1 min-h-0 overflow-y-auto pb-8 sm:pb-0">
-                                    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-                                        {mockStores.map((store) => (
-                                            <StoreCard key={store.id} store={store} />
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                // Empty state (non-scrolling), still padded so the mobile bar doesn't cover it
-                                <div className="mt-6 flex-1 min-h-0 pb-28">
-                                    <div className="flex h-full items-center justify-center">
-                                        <div className="text-center py-12">
-                                            <Store className="mx-auto h-12 w-12 text-muted-foreground" />
-                                            <h3 className="mt-4 text-lg font-semibold">No stores yet</h3>
-                                            <p className="mt-2 text-muted-foreground">Get started by creating your first store.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                <div className="hidden sm:block">
+                    <CreateStoreModal />
                 </div>
             </div>
 
-            {/* Mobile fixed bottom action bar */}
+            {mockStores.length > 0 ? (
+
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] sm:pb-0">
+                    {mockStores.map((store) => (
+                        <StoreCard key={store.id} store={store} />
+                    ))}
+                </div>
+
+            ) : (
+                // Empty state (non-scrolling), still padded so the mobile bar doesn't cover it
+                <div className="flex-1 min-h-0 pb-28 flex items-center justify-center">
+                    <div className="text-center py-12">
+                        <Store className="mx-auto h-12 w-12 text-muted-foreground" />
+                        <h3 className="mt-4 text-lg font-semibold">No stores yet</h3>
+                        <p className="mt-2 text-muted-foreground">Get started by creating your first store.</p>
+                    </div>
+                </div>
+            )}
+
             <MobileActionBar>
-                <CreateStoreModal />
-            </MobileActionBar>
-        </div>
+                <MABTemplate showRightButton={false} showLeftButton={false}>
+                    <CreateStoreButton />
+                </MABTemplate>
+            </MobileActionBar >
+        </>
     )
 }

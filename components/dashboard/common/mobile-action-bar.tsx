@@ -20,11 +20,10 @@ export function MobileActionBar({
     return (
         <div
             className={cn(
-                "fixed inset-x-0 bottom-0 z-50 border-t bg-background sm:hidden",
+                "fixed inset-x-0 bottom-0 z-50 sm:hidden h-[var(--mobile-action-bar-height)] flex items-center justify-center",
                 className
             )}
             style={{
-                // safe-area padding without relying on Tailwind arbitrary values
                 paddingBottom: safeArea ? "calc(1rem + env(safe-area-inset-bottom))" : undefined,
                 paddingTop: "1rem",
                 paddingLeft: "1rem",
