@@ -1,4 +1,3 @@
-// components/business-hours/BusinessHoursSelector.tsx
 "use client";
 
 import { Pencil } from "lucide-react";
@@ -14,7 +13,7 @@ import { DAY_LABELS, DAY_ORDER, formatDayHours } from "@/components/dashboard/st
 
 type BusinessHoursSelectorProps = {
     value: WeekHours;
-    onChange: (next: WeekHours) => void;
+    onChangeAction: (next: WeekHours) => void;
     disabled?: boolean;
     className?: string;
 };
@@ -28,7 +27,7 @@ function daysSatSun(): DayKey[] {
 }
 
 export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
-    const { value, onChange, disabled, className } = props;
+    const { value, onChangeAction, disabled, className } = props;
 
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [initialSelectedDays, setInitialSelectedDays] = React.useState<DayKey[]>(["mon"]);
@@ -89,7 +88,7 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
                 onOpenChange={setDialogOpen}
                 initialSelectedDays={initialSelectedDays}
                 weekHours={value}
-                onSave={onChange}
+                onSave={onChangeAction}
             />
         </>
     );

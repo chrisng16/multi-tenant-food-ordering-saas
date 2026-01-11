@@ -44,10 +44,10 @@ export function ManageStoreView({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid gap-6">
                 <StoreInfoCard store={store} />
                 <div>
-                    <BusinessHoursSelector value={hours} onChange={setHours} />
+                    <BusinessHoursSelector value={hours} onChangeAction={setHours} />
                     {/* <pre className="mt-6 rounded-md bg-muted p-3 text-xs">{JSON.stringify(hours, null, 2)}</pre> */}
                 </div>
             </div>

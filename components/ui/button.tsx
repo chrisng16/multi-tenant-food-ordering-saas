@@ -21,7 +21,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         "action-bar": "h-11 w-auto  rounded-full border backdrop-blur border-white/10 bg-white/5 hover:bg-white/10 active:scale-[0.98]",
         "action-bar-primary":
-          "h-11 w-auto  rounded-full backdrop-blur-xl bg-white/20 border border-white/30 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_8px_24px_rgba(0,0,0,0.35)] hover:bg-white/30 active:bg-white/35 active:scale-[0.98]"
+          "h-11 w-auto rounded-full backdrop-blur-sm bg-white/10 border-[0.5px] border-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_8px_24px_rgba(0,0,0,0.35)] hover:bg-white/15 active:bg-white/25 active:scale-[0.98]"
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

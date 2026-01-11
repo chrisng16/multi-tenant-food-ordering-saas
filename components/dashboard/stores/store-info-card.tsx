@@ -1,5 +1,4 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { StoreFormData } from "@/schemas/auth"
 import StoreForm from "./store-form"
 
 interface StoreInfoCardProps {
@@ -22,15 +21,8 @@ export function StoreInfoCard({ store }: StoreInfoCardProps) {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <StoreInfoEdit store={store} />
+                <StoreForm mode="edit" store={store} />
             </CardContent>
         </Card>
-    )
-}
-
-
-function StoreInfoEdit({ store }: { store: StoreFormData }) {
-    return (
-        <StoreForm mode="edit" store={store} />
     )
 }

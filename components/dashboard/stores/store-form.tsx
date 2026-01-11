@@ -12,24 +12,33 @@ import {
     FieldSet
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Textarea } from "@/components/ui/textarea"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { StoreFormData, storeSchema } from "@/schemas/auth"
+import { CircleCheck, Info } from "lucide-react"
 
 type StoreFormProps =
-    | { mode: "create"; store?: never }
-    | { mode: "edit"; store: StoreFormData };
+    | { mode: "create"; store?: never; onChange?: (formValues: StoreFormData) => void }
+    | { mode: "edit"; store: StoreFormData; onChange?: (formValues: StoreFormData) => void };
 
-const StoreForm = ({ mode, store }: StoreFormProps) => {
+const StoreForm = ({ mode, store, onChange }: StoreFormProps) => {
     const [loading, setLoading] = useState(false)
 
     const defaultValues = mode === "edit" && store ? {
         name: store.name,
         slug: store.slug,
         description: store.description,
+        phone: store.phone,
+        email: store.email,
+        address: store.address
     } : {
         name: "",
         slug: "",
         description: "",
+        phone: "",
+        email: "",
+        address: "",
     };
 
     const form = useForm<StoreFormData>({
@@ -41,10 +50,7 @@ const StoreForm = ({ mode, store }: StoreFormProps) => {
         handleSubmit,
         register,
         formState: { errors },
-        watch,
     } = form
-
-    const slugValue = watch("slug")
 
     const onSubmit = async (values: StoreFormData) => {
         setLoading(true)
@@ -54,7 +60,8 @@ const StoreForm = ({ mode, store }: StoreFormProps) => {
     return (
         <form
             onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-4"
+            onChange={() => onChange && onChange(form.getValues())}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-4"
             noValidate
             autoComplete="on"
         >
@@ -71,20 +78,23 @@ const StoreForm = ({ mode, store }: StoreFormProps) => {
 
                 <Field>
                     <FieldLabel>Store Slug</FieldLabel>
-                    <div className="relative">
-                        <Input
-                            {...register("slug")}
-                            placeholder="your-store-slug"
-                            disabled={loading}
-                            className="pr-20"
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-muted-foreground">
-                            .app.com
-                        </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                        This will be your store's URL: {slugValue ? `${slugValue}.app.com` : 'your-store-slug.app.com'}
-                    </p>
+                    <InputGroup>
+                        <InputGroupAddon align='inline-start'>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Info className="h-4 w-4" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>This slug will be used as prefix for your store URL.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </InputGroupAddon>
+                        <InputGroupInput {...register("slug")} placeholder="your-store-slug" disabled={loading} />
+                        <InputGroupAddon align='inline-end'>.app.com</InputGroupAddon>
+                        <InputGroupAddon align='inline-end'><CircleCheck /></InputGroupAddon>
+                    </InputGroup>
                     <FieldError>{errors.slug?.message}</FieldError>
                 </Field>
 
@@ -98,19 +108,45 @@ const StoreForm = ({ mode, store }: StoreFormProps) => {
                     />
                     <FieldError>{errors.description?.message}</FieldError>
                 </Field>
-            </FieldSet>
 
-            <div className="flex gap-3 pt-3 justify-end">
-                <Button type="submit" disabled={loading || !form.formState.isDirty}>
-                    {loading ? (
-                        `${mode === 'create' ? 'Creating' : 'Updating'} Store...`
-                    ) : (
-                        <>
-                            {mode === 'create' ? 'Create Store' : 'Update Store'}
-                        </>
-                    )}
-                </Button>
-            </div>
+            </FieldSet>
+            <FieldSet>
+                <Field>
+                    <FieldLabel>Store Phone Number</FieldLabel>
+                    <Input
+                        {...register("phone")}
+                        placeholder="Enter your store phone number"
+                    // disabled={loading}
+                    />
+                    <FieldError>{errors.phone?.message}</FieldError>
+                </Field>
+                <Field>
+                    <FieldLabel>Store Email (Optional)</FieldLabel>
+                    <Input
+                        {...register("email")}
+                        placeholder="Enter your store email"
+                    // disabled={loading}
+                    />
+                    <FieldError>{errors.email?.message}</FieldError>
+                </Field>
+                <Field>
+                    <FieldLabel>Store Address (Optional)</FieldLabel>
+                    <Textarea
+                        {...register("address")}
+                        placeholder="Enter your store address"
+                        disabled={loading}
+                        rows={3}
+                    />
+                    <FieldError>{errors.address?.message}</FieldError>
+                </Field>
+            </FieldSet>
+            {mode === 'edit' && (
+                <div className="flex gap-3 pt-3 justify-end col-span-1 lg:col-span-2">
+                    <Button type="submit" disabled={loading || !form.formState.isDirty}>
+                        {loading ? 'Updating Store...' : 'Update Store'}
+                    </Button>
+                </div>
+            )}
         </form>
     )
 }

@@ -15,7 +15,7 @@ export default function DashboardLayout({
                     "--sidebar-width": "calc(var(--spacing) * 60)",
                     "--header-height": "calc(var(--spacing) * 12)",
                     "--mobile-action-bar-height": "calc(var(--spacing) * 18)",
-                    "--mobile-padding-bottom": "calc(var(--spacing) * 18 - 0.75rem)",
+                    "--mobile-padding-bottom": "calc(var(--spacing) * 18 - 1rem)",
                 } as React.CSSProperties
             }
         >

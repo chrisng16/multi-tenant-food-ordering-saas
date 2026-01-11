@@ -58,8 +58,9 @@ function defaultLeftButton() {
                 <Button
                     type="button"
                     variant="action-bar-primary"
+                    size='icon-lg'
+                    className="rounded-full"
                     aria-label="Go back"
-                    className="size-11"
                     onClick={() => window.history.back()}
                 >
                     <ChevronLeft className="size-5" />
@@ -77,8 +78,9 @@ function defaultRightButton() {
                 <Button
                     type="button"
                     variant="action-bar-primary"
+                    className="rounded-full"
                     aria-label="More"
-                    className="size-11"
+                    size='icon-lg'
                 >
                     <MoreHorizontal className="size-5" />
                 </Button>

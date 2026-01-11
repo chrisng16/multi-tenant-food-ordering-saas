@@ -2,10 +2,14 @@
 
 import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar"
 import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
-import CreateStoreButton from "@/components/dashboard/stores/create-store-button"
-import { CreateStoreModal } from "@/components/dashboard/stores/create-store-modal"
+import { WeekHours, defaultWeekHours } from "@/components/dashboard/stores/business-hours/time-utils"
+import CreateStoreView from "@/components/dashboard/stores/create-store/create-store-view"
+import QuickActionButton from "@/components/dashboard/stores/quick-action-button"
 import { StoreCard } from "@/components/dashboard/stores/store-card"
-import { Store } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { StoreFormData } from "@/schemas/auth"
+import { Plus, Store } from "lucide-react"
+import { useState } from "react"
 
 // Mock data - in real app, this would come from API/database
 const mockStores = [
@@ -19,44 +23,69 @@ const mockStores = [
 ]
 
 export default function StoresPage() {
+    const [isCreatingStore, setIsCreatingStore] = useState(false)
+    const [hours, setHours] = useState<WeekHours>(defaultWeekHours);
+    const [storeDetails, setStoreDetails] = useState<StoreFormData>({
+        name: '',
+        slug: '',
+        description: '',
+        phone: '',
+        email: '',
+        address: ''
+    });
+
     return (
         <>
-
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-xl md:text-2xl font-bold tracking-tight">My Stores</h1>
                     <p className="text-muted-foreground">Manage all your stores from one place</p>
                 </div>
-
-                <div className="hidden sm:block">
-                    <CreateStoreModal />
-                </div>
+                {
+                    isCreatingStore ?
+                        <div className='flex justify-end gap-2'>
+                            <Button variant="secondary" onClick={() => setIsCreatingStore(false)}>Cancel</Button>
+                            <Button>Create Store</Button>
+                        </div> :
+                        <div className="hidden sm:block">
+                            <Button onClick={() => setIsCreatingStore(true)} className="sm:w-auto">
+                                <Plus className="size-4" /> Create Store
+                            </Button>
+                        </div>
+                }
             </div>
+            {
+                isCreatingStore ? <CreateStoreView hours={hours} setHours={setHours} setStoreDetails={setStoreDetails} /> :
+                    <>
+                        {
+                            mockStores.length > 0 ? (
 
-            {mockStores.length > 0 ? (
+                                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] sm:pb-0">
+                                    {mockStores.map((store) => (
+                                        <StoreCard key={store.id} store={store} />
+                                    ))}
+                                </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] sm:pb-0">
-                    {mockStores.map((store) => (
-                        <StoreCard key={store.id} store={store} />
-                    ))}
-                </div>
-
-            ) : (
-                // Empty state (non-scrolling), still padded so the mobile bar doesn't cover it
-                <div className="flex-1 min-h-0 pb-28 flex items-center justify-center">
-                    <div className="text-center py-12">
-                        <Store className="mx-auto h-12 w-12 text-muted-foreground" />
-                        <h3 className="mt-4 text-base md:text-lg font-semibold">No stores yet</h3>
-                        <p className="mt-2 text-muted-foreground">Get started by creating your first store.</p>
-                    </div>
-                </div>
-            )}
-
-            <MobileActionBar>
-                <MABTemplate showRightButton={false} showLeftButton={false}>
-                    <CreateStoreButton />
-                </MABTemplate>
-            </MobileActionBar >
+                            ) : (
+                                // Empty state (non-scrolling), still padded so the mobile bar doesn't cover it
+                                <div className="flex-1 min-h-0 pb-28 flex items-center justify-center">
+                                    <div className="text-center py-12">
+                                        <Store className="mx-auto h-12 w-12 text-muted-foreground" />
+                                        <h3 className="mt-4 text-base md:text-lg font-semibold">No stores yet</h3>
+                                        <p className="mt-2 text-muted-foreground">Get started by creating your first store.</p>
+                                    </div>
+                                </div>
+                            )
+                        }
+                    </>
+            }
+            {!isCreatingStore &&
+                <MobileActionBar>
+                    <MABTemplate showRightButton={false} showLeftButton={false}>
+                        <QuickActionButton onClick={() => setIsCreatingStore(true)} icon={Plus} label={"Create Store"} ariaLabel={"Create Store"} />
+                    </MABTemplate>
+                </MobileActionBar >
+            }
         </>
     )
 }
