@@ -3,12 +3,12 @@
 import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar"
 import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
 import { WeekHours, defaultWeekHours } from "@/components/dashboard/stores/business-hours/time-utils"
-import CreateStoreView from "@/components/dashboard/stores/create-store/create-store-view"
+import StoreInfoEntry from "@/components/dashboard/stores/create-modify-store/store-info-entry"
 import QuickActionButton from "@/components/dashboard/stores/quick-action-button"
 import { StoreCard } from "@/components/dashboard/stores/store-card"
 import { Button } from "@/components/ui/button"
 import { StoreFormData } from "@/schemas/auth"
-import { Plus, Store } from "lucide-react"
+import { Plus, Save, Store, X } from "lucide-react"
 import { useState } from "react"
 
 // Mock data - in real app, this would come from API/database
@@ -41,21 +41,15 @@ export default function StoresPage() {
                     <h1 className="text-xl md:text-2xl font-bold tracking-tight">My Stores</h1>
                     <p className="text-muted-foreground">Manage all your stores from one place</p>
                 </div>
-                {
-                    isCreatingStore ?
-                        <div className='flex justify-end gap-2'>
-                            <Button variant="secondary" onClick={() => setIsCreatingStore(false)}>Cancel</Button>
-                            <Button>Create Store</Button>
-                        </div> :
-                        <div className="hidden sm:block">
-                            <Button onClick={() => setIsCreatingStore(true)} className="sm:w-auto">
-                                <Plus className="size-4" /> Create Store
-                            </Button>
-                        </div>
-                }
+                <div className="hidden sm:block">
+                    <Button onClick={() => setIsCreatingStore(true)} className="sm:w-auto">
+                        <Plus className="size-4" /> Create Store
+                    </Button>
+
+                </div>
             </div>
             {
-                isCreatingStore ? <CreateStoreView hours={hours} setHours={setHours} setStoreDetails={setStoreDetails} /> :
+                isCreatingStore ? <StoreInfoEntry mode="create" hours={hours} setHours={setHours} setStoreDetails={setStoreDetails} /> :
                     <>
                         {
                             mockStores.length > 0 ? (
@@ -79,13 +73,22 @@ export default function StoresPage() {
                         }
                     </>
             }
-            {!isCreatingStore &&
-                <MobileActionBar>
+
+            <MobileActionBar>
+                {isCreatingStore ?
+                    <MABTemplate showRightButton={false} leftButton={<LeftButton onClick={() => setIsCreatingStore(false)} />}>
+                        <QuickActionButton className="w-full" onClick={() => setIsCreatingStore(true)} icon={Save} label={"Save"} ariaLabel={"Create Store"} />
+                    </MABTemplate> :
                     <MABTemplate showRightButton={false} showLeftButton={false}>
-                        <QuickActionButton onClick={() => setIsCreatingStore(true)} icon={Plus} label={"Create Store"} ariaLabel={"Create Store"} />
+                        <QuickActionButton className="w-full" onClick={() => setIsCreatingStore(true)} icon={Plus} label={"Create Store"} ariaLabel={"Create Store"} />
                     </MABTemplate>
-                </MobileActionBar >
-            }
+                }
+            </MobileActionBar >
+
         </>
     )
+}
+
+function LeftButton({ onClick }: { onClick: () => void }) {
+    return <QuickActionButton ariaLabel={"Cancel"} icon={X} onClick={onClick} />
 }

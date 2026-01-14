@@ -4,7 +4,6 @@ import { Pencil } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 import { HoursEditDialog } from "@/components/dashboard/stores/business-hours/hours-edit-dialog";
@@ -38,50 +37,47 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
     };
 
     return (
-        <>
-            <Card className={className}>
-                <CardHeader>
-                    <CardTitle>Business Hours</CardTitle>
-                    <CardDescription>Set the hours your store is open each day</CardDescription>
-                </CardHeader>
+        <div className="space-y-1">
+            <div className="space-y-2">
+                <h2 className="leading-none font-semibold">Business Hours</h2>
+                <p className="text-muted-foreground text-sm">Set the hours your store is open each day</p>
+            </div>
 
-                <CardContent>
-                    {DAY_ORDER.map((day, idx) => (
-                        <React.Fragment key={day}>
-                            <div className="flex items-center justify-between py-2">
-                                <div className="text-sm">{DAY_LABELS[day]}</div>
-                                <div className="flex items-center gap-1">
-                                    <div className="text-sm text-muted-foreground">{formatDayHours(value[day])}</div>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon-sm"
-                                        disabled={disabled}
-                                        onClick={() => openForDays([day])}
-                                        aria-label={`Edit ${DAY_LABELS[day]}`}
-                                    >
-                                        <Pencil />
-                                    </Button>
-                                </div>
+            <div>
+                {DAY_ORDER.map((day, idx) => (
+                    <React.Fragment key={day}>
+                        <div className="flex items-center justify-between py-2">
+                            <div className="text-sm">{DAY_LABELS[day]}</div>
+                            <div className="flex items-center gap-1">
+                                <div className="text-sm text-muted-foreground">{formatDayHours(value[day])}</div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    disabled={disabled}
+                                    onClick={() => openForDays([day])}
+                                    aria-label={`Edit ${DAY_LABELS[day]}`}
+                                >
+                                    <Pencil />
+                                </Button>
                             </div>
-                            {idx !== DAY_ORDER.length - 1 && <Separator />}
-                        </React.Fragment>
-                    ))}
+                        </div>
+                        {idx !== DAY_ORDER.length - 1 && <Separator />}
+                    </React.Fragment>
+                ))}
 
-                </CardContent>
-                <CardFooter className="flex flex-wrap items-center justify-center gap-2">
-                    <Button type="button" variant="outline" disabled={disabled} onClick={() => openForDays(DAY_ORDER)}>
-                        Edit all hours
-                    </Button>
-                    <Button type="button" variant="outline" disabled={disabled} onClick={() => openForDays(daysMonFri())}>
-                        Edit Mon-Fri
-                    </Button>
-                    <Button type="button" variant="outline" disabled={disabled} onClick={() => openForDays(daysSatSun())}>
-                        Edit Sat-Sun
-                    </Button>
-                </CardFooter>
-
-            </Card >
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+                <Button type="button" variant="outline" disabled={disabled} onClick={() => openForDays(DAY_ORDER)}>
+                    Edit all hours
+                </Button>
+                <Button type="button" variant="outline" disabled={disabled} onClick={() => openForDays(daysMonFri())}>
+                    Edit Mon-Fri
+                </Button>
+                <Button type="button" variant="outline" disabled={disabled} onClick={() => openForDays(daysSatSun())}>
+                    Edit Sat-Sun
+                </Button>
+            </div>
 
             <HoursEditDialog
                 open={dialogOpen}
@@ -90,6 +86,6 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
                 weekHours={value}
                 onSave={onChangeAction}
             />
-        </>
+        </div>
     );
 }

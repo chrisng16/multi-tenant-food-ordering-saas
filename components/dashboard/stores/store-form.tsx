@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 
-import { Button } from "@/components/ui/button"
 import {
     Field,
     FieldError,
@@ -18,9 +17,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { StoreFormData, storeSchema } from "@/schemas/auth"
 import { CircleCheck, Info } from "lucide-react"
 
-type StoreFormProps =
-    | { mode: "create"; store?: never; onChange?: (formValues: StoreFormData) => void }
-    | { mode: "edit"; store: StoreFormData; onChange?: (formValues: StoreFormData) => void };
+type StoreFormProps = { mode: "create" | "edit"; store?: StoreFormData; onChange?: (formValues: StoreFormData) => void }
 
 const StoreForm = ({ mode, store, onChange }: StoreFormProps) => {
     const [loading, setLoading] = useState(false)
@@ -47,19 +44,12 @@ const StoreForm = ({ mode, store, onChange }: StoreFormProps) => {
     })
 
     const {
-        handleSubmit,
         register,
         formState: { errors },
     } = form
 
-    const onSubmit = async (values: StoreFormData) => {
-        setLoading(true)
-        console.log(values)
-    }
-
     return (
         <form
-            onSubmit={handleSubmit(onSubmit)}
             onChange={() => onChange && onChange(form.getValues())}
             className="grid grid-cols-1 lg:grid-cols-2 gap-4"
             noValidate
@@ -140,13 +130,6 @@ const StoreForm = ({ mode, store, onChange }: StoreFormProps) => {
                     <FieldError>{errors.address?.message}</FieldError>
                 </Field>
             </FieldSet>
-            {mode === 'edit' && (
-                <div className="flex gap-3 pt-3 justify-end col-span-1 lg:col-span-2">
-                    <Button type="submit" disabled={loading || !form.formState.isDirty}>
-                        {loading ? 'Updating Store...' : 'Update Store'}
-                    </Button>
-                </div>
-            )}
         </form>
     )
 }

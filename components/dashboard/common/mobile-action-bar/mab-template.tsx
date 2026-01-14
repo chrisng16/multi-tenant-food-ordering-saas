@@ -38,7 +38,7 @@ export default function MABTemplate({
 
                         {showLeftButton && (leftButton ? leftButton : defaultLeftButton())}
                         {/* Primary Button */}
-                        <div className={`${!showLeftButton && !showRightButton ? "flex-grow" : ""}`}>
+                        <div className="flex-grow">
                             {children}
                         </div>
 
@@ -58,7 +58,7 @@ function defaultLeftButton() {
                 <Button
                     type="button"
                     variant="action-bar-primary"
-                    size='icon-lg'
+                    size='icon'
                     className="rounded-full"
                     aria-label="Go back"
                     onClick={() => window.history.back()}
@@ -80,7 +80,7 @@ function defaultRightButton() {
                     variant="action-bar-primary"
                     className="rounded-full"
                     aria-label="More"
-                    size='icon-lg'
+                    size='icon'
                 >
                     <MoreHorizontal className="size-5" />
                 </Button>

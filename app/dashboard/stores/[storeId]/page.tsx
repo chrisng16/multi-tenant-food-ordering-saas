@@ -2,11 +2,11 @@
 "use client"
 
 import { notFound } from "next/navigation"
-import { use } from "react"
+import { use, useState } from "react"
 
-import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar"
-import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
-import { ActionBarQuickActions, ManageStoreView } from "@/components/dashboard/stores/manage-store-view"
+import { WeekHours, defaultWeekHours } from "@/components/dashboard/stores/business-hours/time-utils"
+import { EditStoreView } from "@/components/dashboard/stores/edit-store-view"
+import { StoreFormData } from "@/schemas/auth"
 
 // Mock data - in real app, this would come from API/database
 const mockStores = [
@@ -32,14 +32,9 @@ export default function StorePage({ params }: StorePageProps) {
         notFound()
     }
 
-    return (
-        <>
-            <ManageStoreView store={store} />
-            <MobileActionBar>
-                <MABTemplate showRightButton={false} >
-                    <ActionBarQuickActions store={store} />
-                </MABTemplate>
-            </MobileActionBar >
-        </>
-    )
+    const [hours, setHours] = useState<WeekHours>(defaultWeekHours);
+    const [storeDetails, setStoreDetails] = useState<StoreFormData>(store);
+
+    return <EditStoreView store={{ ...storeDetails, id: storeId }} hours={hours} setHours={setHours} setStoreDetails={setStoreDetails} />
+
 }

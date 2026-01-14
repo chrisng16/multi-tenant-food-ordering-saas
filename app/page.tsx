@@ -2,9 +2,10 @@ import Header from "@/components/common/header";
 import AuthModal from "@/components/home/auth/auth-modal";
 import AuthTrigger from "@/components/home/auth/auth-modal-trigger";
 import { Button } from "@/components/ui/button";
+import { Metadata } from "next";
 import { Suspense } from "react";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Order Smarter. Manage Better. | Your App Name",
   description: "A modern multi-tenant food ordering platform for restaurants and their customers.",
   openGraph: {

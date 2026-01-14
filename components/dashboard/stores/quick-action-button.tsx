@@ -1,16 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { LucideIcon } from 'lucide-react';
 
-interface QuickActionButtonProps {
-    label: string;
+interface QuickActionButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    label?: string;
     ariaLabel: string;
     icon: LucideIcon;
-    onClick: () => void
 }
 
-export default function QuickActionButton({ label, ariaLabel, icon: Icon, onClick }: QuickActionButtonProps) {
+export default function QuickActionButton({ label, ariaLabel, icon: Icon, ...props }: QuickActionButtonProps) {
     return (
-        <Button variant="action-bar-primary" className='w-full rounded-full' size='lg' aria-label={ariaLabel} onClick={onClick}>
+        <Button {...props} variant="action-bar-primary" size={label ? "default" : "icon"} aria-label={ariaLabel}>
             <Icon /> {label}
         </Button>
     )

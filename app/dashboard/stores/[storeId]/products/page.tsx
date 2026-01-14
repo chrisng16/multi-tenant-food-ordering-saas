@@ -277,7 +277,7 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
             {!showAddForm &&
                 <MobileActionBar>
                     <MABTemplate showRightButton={false} showLeftButton={false}>
-                        <QuickActionButton onClick={() => setShowAddForm(true)} label={"Add Product"} ariaLabel={"Add Product"} icon={Plus} />
+                        <QuickActionButton className="w-full" onClick={() => setShowAddForm(true)} label={"Add Product"} ariaLabel={"Add Product"} icon={Plus} />
                     </MABTemplate>
                 </MobileActionBar >
             }

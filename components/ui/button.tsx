@@ -19,9 +19,8 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
-        "action-bar": "h-11 w-auto  rounded-full border backdrop-blur border-white/10 bg-white/5 hover:bg-white/10 active:scale-[0.98]",
-        "action-bar-primary":
-          "h-11 w-auto rounded-full backdrop-blur-sm bg-white/10 border-[0.5px] border-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_8px_24px_rgba(0,0,0,0.35)] hover:bg-white/15 active:bg-white/25 active:scale-[0.98]"
+        "action-bar": "rounded-full border backdrop-blur border-primary/10 bg-primary/5 hover:bg-primary/10 active:scale-[0.98]",
+        "action-bar-primary": "rounded-full backdrop-blur-sm bg-primary/10 dark:bg-primary/25 border-[0.5px] border-primary/20 dark:border-primary/10 text-primary shadow-[inset_1px_1px_0_rgba(255,255,255,0.45),0_6px_18px_rgba(0,0,0,0.25)] dark:shadow-[inset_1px_1px_0_rgba(255,255,255,0.35),0_8px_24px_rgba(0,0,0,0.35)] hover:bg-primary/15 dark:hover:bg-primary/20 active:bg-primary/25 dark:active:bg-primary/30 active:scale-[0.98]"
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

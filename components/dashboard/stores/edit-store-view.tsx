@@ -3,14 +3,19 @@
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { BarChart3, MoreHorizontalIcon, Package, ShoppingCart, Store, Zap } from "lucide-react"
+import { StoreFormData } from "@/schemas/auth"
+import { BarChart3, MoreHorizontal, MoreHorizontalIcon, Package, Save, ShoppingCart, Store, Zap } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
-import { BusinessHoursSelector } from "./business-hours/business-hours-selector"
-import { WeekHours, defaultWeekHours } from "./business-hours/time-utils"
-import { StoreInfoCard } from "./store-info-card"
+import { MobileActionBar } from "../common/mobile-action-bar"
+import MABTemplate from "../common/mobile-action-bar/mab-template"
+import { WeekHours } from "./business-hours/time-utils"
+import StoreInfoEntry from "./create-modify-store/store-info-entry"
+import QuickActionButton from "./quick-action-button"
 
-interface ManageStoreViewProps {
+interface EditStoreViewProps {
+    hours: WeekHours
+    setHours: (hours: WeekHours) => void
+    setStoreDetails: (details: StoreFormData) => void
     store: {
         id: string
         name: string
@@ -19,19 +24,28 @@ interface ManageStoreViewProps {
     }
 }
 
-export function ManageStoreView({
-    store
-}: ManageStoreViewProps) {
-    const [hours, setHours] = useState<WeekHours>(defaultWeekHours);
+export function EditStoreView({
+    hours,
+    setHours,
+    store,
+    setStoreDetails
+}: EditStoreViewProps) {
+
+
+
+    const handleSubmit = () => {
+        // Handle form submission logic here
+        console.log("Store details saved:", store);
+    }
 
     return (
 
-        <div className="pb-[var(--mobile-padding-bottom)] sm:pb-0 space-y-6">
+        <>
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-xl md:text-2xl font-bold tracking-tight">{store.name}</h1>
                     <p className="text-sm md:text-base text-muted-foreground">
-                        Manage your store settings and preferences
+                        Edit your store settings and preferences
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -44,14 +58,14 @@ export function ManageStoreView({
                 </div>
             </div>
 
-            <div className="grid gap-6">
-                <StoreInfoCard store={store} />
-                <div>
-                    <BusinessHoursSelector value={hours} onChangeAction={setHours} />
-                    {/* <pre className="mt-6 rounded-md bg-muted p-3 text-xs">{JSON.stringify(hours, null, 2)}</pre> */}
-                </div>
-            </div>
-        </div>
+            <StoreInfoEntry mode="edit" hours={hours} setHours={setHours} store={store} setStoreDetails={setStoreDetails} />
+
+            <MobileActionBar>
+                <MABTemplate rightButton={<ActionBarQuickActions store={store} />}>
+                    <QuickActionButton className="w-full" onClick={() => handleSubmit()} icon={Save} label={"Save"} ariaLabel={"Create Store"} />
+                </MABTemplate>
+            </MobileActionBar >
+        </>
     )
 }
 
@@ -130,8 +144,8 @@ export function ActionBarQuickActions({ store }: { store: { id: string } }) {
     return (
         <Drawer>
             <DrawerTrigger asChild>
-                <Button variant="action-bar-primary" className="h-11 w-full">
-                    <Zap className="size-3" />Quick Actions
+                <Button variant="action-bar-primary" size='icon' aria-label="Open Quick Actions">
+                    <MoreHorizontal />
                 </Button>
             </DrawerTrigger>
             <DrawerContent>
