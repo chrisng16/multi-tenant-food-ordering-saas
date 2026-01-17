@@ -1,8 +1,10 @@
 import { ThemeProvider } from "@/components/common/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import Providers from './providers';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +30,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+
+      {/* The rest of your application */}
       <body
         className={`${inter.className} antialiased`}
       >
@@ -37,10 +41,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <Providers>
+            {children}
+            <ReactQueryDevtools initialIsOpen={false} />
+            <Toaster />
+          </Providers>
         </ThemeProvider>
       </body>
+
     </html>
   );
 }

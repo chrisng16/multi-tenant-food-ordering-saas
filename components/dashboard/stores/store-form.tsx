@@ -14,18 +14,21 @@ import { Input } from "@/components/ui/input"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { StoreFormData, storeSchema } from "@/schemas/auth"
+import { StoreSchema, storeSchema } from "@/schemas/store"
 import { CircleCheck, Info } from "lucide-react"
+import { TimezoneSelector } from "./business-hours/timezone-selector"
 
-type StoreFormProps = { mode: "create" | "edit"; store?: StoreFormData; onChange?: (formValues: StoreFormData) => void }
+type StoreFormProps = { mode: "create" | "edit"; store?: StoreSchema; onChange?: (formValues: StoreSchema) => void }
 
 const StoreForm = ({ mode, store, onChange }: StoreFormProps) => {
     const [loading, setLoading] = useState(false)
 
-    const defaultValues = mode === "edit" && store ? {
+    const defaultValues: StoreSchema = mode === "edit" && store ? {
         name: store.name,
         slug: store.slug,
         description: store.description,
+        timezone: store.timezone,
+        logoUrl: store.logoUrl,
         phone: store.phone,
         email: store.email,
         address: store.address
@@ -33,12 +36,14 @@ const StoreForm = ({ mode, store, onChange }: StoreFormProps) => {
         name: "",
         slug: "",
         description: "",
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles",
+        logoUrl: "",
         phone: "",
         email: "",
         address: "",
     };
 
-    const form = useForm<StoreFormData>({
+    const form = useForm<StoreSchema>({
         resolver: zodResolver(storeSchema),
         defaultValues
     })
@@ -98,6 +103,11 @@ const StoreForm = ({ mode, store, onChange }: StoreFormProps) => {
                     />
                     <FieldError>{errors.description?.message}</FieldError>
                 </Field>
+                <TimezoneSelector
+                    field={register("timezone")}
+                    error={errors.timezone?.message}
+                    disabled={loading}
+                />
 
             </FieldSet>
             <FieldSet>

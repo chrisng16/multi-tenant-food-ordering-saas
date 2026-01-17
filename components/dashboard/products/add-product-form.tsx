@@ -9,7 +9,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/in
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Info, Plus, Trash2, X } from "lucide-react"
+import { Info, Plus, Save, Trash2, X } from "lucide-react"
 import { useState } from "react"
 import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
@@ -244,7 +244,7 @@ export function AddProductForm({ onProductAdded, onCancel }: AddProductFormProps
                     {/* Actions */}
                     <div className="flex gap-3 pt-4 border-t sm:justify-end">
                         <Button type="submit" className="flex-1 sm:flex-0 sm:w-auto">
-                            Add Product
+                            <Save className="size-4" /> Save Product
                         </Button>
                         <Button type="button" variant="outline" className="flex-1 sm:flex-0 sm:w-auto" onClick={onCancel}>
                             Cancel

@@ -3,7 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { StoreFormData } from "@/schemas/auth"
+
+import { StoreSchema } from "@/schemas/store"
 import { BarChart3, MoreHorizontal, MoreHorizontalIcon, Package, Save, ShoppingCart, Store, Zap } from "lucide-react"
 import Link from "next/link"
 import { MobileActionBar } from "../common/mobile-action-bar"
@@ -15,7 +16,7 @@ import QuickActionButton from "./quick-action-button"
 interface EditStoreViewProps {
     hours: WeekHours
     setHours: (hours: WeekHours) => void
-    setStoreDetails: (details: StoreFormData) => void
+    setStoreDetails: (details: StoreSchema) => void
     store: {
         id: string
         name: string
@@ -30,7 +31,6 @@ export function EditStoreView({
     store,
     setStoreDetails
 }: EditStoreViewProps) {
-
 
 
     const handleSubmit = () => {
@@ -58,11 +58,11 @@ export function EditStoreView({
                 </div>
             </div>
 
-            <StoreInfoEntry mode="edit" hours={hours} setHours={setHours} store={store} setStoreDetails={setStoreDetails} />
+            <StoreInfoEntry mode="edit" hours={hours} setHours={setHours} store={store} setStoreDetails={setStoreDetails} onSave={handleSubmit} onCancel={() => window.history.back()} />
 
             <MobileActionBar>
                 <MABTemplate rightButton={<ActionBarQuickActions store={store} />}>
-                    <QuickActionButton className="w-full" onClick={() => handleSubmit()} icon={Save} label={"Save"} ariaLabel={"Create Store"} />
+                    <QuickActionButton className="w-full" onClick={() => handleSubmit()} icon={Save} label={"Save"} ariaLabel={"Save Store"} />
                 </MABTemplate>
             </MobileActionBar >
         </>

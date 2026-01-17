@@ -2,11 +2,11 @@
 
 import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar"
 import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
-import { AddProductForm } from "@/components/dashboard/products/add-product-form"
+import { AddProductFormV2 } from "@/components/dashboard/products/add-product-form-v2"
 import { ProductCard } from "@/components/dashboard/products/product-card"
 import QuickActionButton from "@/components/dashboard/stores/quick-action-button"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Plus, Save, X } from "lucide-react"
 import { use, useState } from "react"
 
 // Mock data - in real app, this would come from API/database
@@ -228,59 +228,65 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
 
     return (
         <>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Products</h1>
-                    <p className="text-muted-foreground">Manage your store's products and menu items</p>
-                </div>
-                {!showAddForm && (
+            {!showAddForm && (
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 className="text-xl md:text-2xl font-bold tracking-tight">Products</h1>
+                        <p className="text-muted-foreground">Manage your store's products and menu items</p>
+                    </div>
                     <Button onClick={handleAddProduct} className="hidden sm:flex sm:w-auto">
                         <Plus className="size-4" />
                         Add Product
                     </Button>
-                )}
-            </div>
-
-            {showAddForm ? (
-                <>
-                    <AddProductForm
+                </div>
+            )}
+            <div className=" pb-[var(--mobile-padding-bottom)] sm:pb-0">
+                {showAddForm ? (
+                    <AddProductFormV2
                         onProductAdded={handleProductAdded}
                         onCancel={handleCancelAdd}
                     />
-                </>
-
-            ) :
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] sm:pb-0">
-                    {products[storeId].length > 0 ? (
-                        products[storeId].map((product) => (
-                            <ProductCard key={product.id} product={product} storeId={storeId} />
-                        ))
-                    ) : (
-                        <div className="col-span-full text-center py-12">
-                            <div className="mx-auto h-12 w-12 text-muted-foreground">
-                                <Plus className="h-full w-full" />
+                ) :
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        {products[storeId].length > 0 ? (
+                            products[storeId].map((product) => (
+                                <ProductCard key={product.id} product={product} storeId={storeId} />
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center py-12">
+                                <div className="mx-auto h-12 w-12 text-muted-foreground">
+                                    <Plus className="h-full w-full" />
+                                </div>
+                                <h3 className="mt-4 text-base md:text-lg font-semibold">No products yet</h3>
+                                <p className="mt-2 text-muted-foreground">
+                                    Get started by adding your first product.
+                                </p>
+                                {!showAddForm && (
+                                    <Button onClick={handleAddProduct} className="mt-4">
+                                        <Plus className="size-4" />
+                                        Add Your First Product
+                                    </Button>
+                                )}
                             </div>
-                            <h3 className="mt-4 text-base md:text-lg font-semibold">No products yet</h3>
-                            <p className="mt-2 text-muted-foreground">
-                                Get started by adding your first product.
-                            </p>
-                            {!showAddForm && (
-                                <Button onClick={handleAddProduct} className="mt-4">
-                                    <Plus className="size-4" />
-                                    Add Your First Product
-                                </Button>
-                            )}
-                        </div>
-                    )}
-                </div>
-            }
-            {!showAddForm &&
-                <MobileActionBar>
+                        )}
+                    </div>
+                }
+            </div>
+            <MobileActionBar>
+                {showAddForm ?
+                    <MABTemplate showRightButton={false} leftButton={<LeftButton onClick={() => setShowAddForm(false)} />}>
+                        <QuickActionButton className="w-full" onClick={() => setShowAddForm(true)} icon={Save} label={"Save Product"} ariaLabel={"Create Product"} />
+                    </MABTemplate> :
                     <MABTemplate showRightButton={false} showLeftButton={false}>
                         <QuickActionButton className="w-full" onClick={() => setShowAddForm(true)} label={"Add Product"} ariaLabel={"Add Product"} icon={Plus} />
                     </MABTemplate>
-                </MobileActionBar >
-            }
+                }
+            </MobileActionBar >
+
         </>
     )
+}
+
+function LeftButton({ onClick }: { onClick: () => void }) {
+    return <QuickActionButton ariaLabel={"Cancel"} icon={X} onClick={onClick} />
 }

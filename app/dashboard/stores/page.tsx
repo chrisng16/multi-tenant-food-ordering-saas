@@ -7,9 +7,12 @@ import StoreInfoEntry from "@/components/dashboard/stores/create-modify-store/st
 import QuickActionButton from "@/components/dashboard/stores/quick-action-button"
 import { StoreCard } from "@/components/dashboard/stores/store-card"
 import { Button } from "@/components/ui/button"
-import { StoreFormData } from "@/schemas/auth"
+import { StoreSchema } from "@/schemas/store"
+import { useMutation } from "@tanstack/react-query"
 import { Plus, Save, Store, X } from "lucide-react"
 import { useState } from "react"
+
+import { createStore } from "@/actions/server/store"
 
 // Mock data - in real app, this would come from API/database
 const mockStores = [
@@ -25,14 +28,32 @@ const mockStores = [
 export default function StoresPage() {
     const [isCreatingStore, setIsCreatingStore] = useState(false)
     const [hours, setHours] = useState<WeekHours>(defaultWeekHours);
-    const [storeDetails, setStoreDetails] = useState<StoreFormData>({
+    const [storeDetails, setStoreDetails] = useState<StoreSchema>({
         name: '',
         slug: '',
+        logoUrl: '',
         description: '',
+        timezone: '',
         phone: '',
         email: '',
         address: ''
     });
+
+    const { isPending, mutate } = useMutation({
+        mutationFn: (newStore: StoreSchema) => createStore(newStore),
+        onSuccess: () => {
+            // Invalidate and refetch stores list or update UI accordingly
+            setIsCreatingStore(false);
+            console.log("Store created successfully");
+        }
+    })
+
+    const handleSubmit = () => {
+        // Handle form submission logic here
+        console.log("Store Details Submitted:", storeDetails, hours);
+        // Reset form or navigate as needed
+        mutate(storeDetails);
+    }
 
     return (
         <>
@@ -49,7 +70,7 @@ export default function StoresPage() {
                 </div>
             </div>
             {
-                isCreatingStore ? <StoreInfoEntry mode="create" hours={hours} setHours={setHours} setStoreDetails={setStoreDetails} /> :
+                isCreatingStore ? <StoreInfoEntry mode="create" hours={hours} setHours={setHours} setStoreDetails={setStoreDetails} onSave={handleSubmit} onCancel={() => setIsCreatingStore(false)} /> :
                     <>
                         {
                             mockStores.length > 0 ? (
@@ -73,11 +94,24 @@ export default function StoresPage() {
                         }
                     </>
             }
+            {
+                isCreatingStore &&
+                <div className="hidden p-4 border-t sm:flex gap-3 sm:items-center sm:justify-between">
+                    <div className="flex gap-3 sm:justify-end">
+                        <Button type="submit" disabled={isPending} onClick={handleSubmit} className="flex-1 sm:flex-none">
+                            <Save className="size-4" /> Save Store
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => setIsCreatingStore(false)} className="flex-1 sm:flex-none">
+                            Cancel
+                        </Button>
+                    </div>
+                </div>
+            }
 
             <MobileActionBar>
                 {isCreatingStore ?
                     <MABTemplate showRightButton={false} leftButton={<LeftButton onClick={() => setIsCreatingStore(false)} />}>
-                        <QuickActionButton className="w-full" onClick={() => setIsCreatingStore(true)} icon={Save} label={"Save"} ariaLabel={"Create Store"} />
+                        <QuickActionButton className="w-full" onClick={handleSubmit} icon={Save} label={"Save"} ariaLabel={"Create Store"} />
                     </MABTemplate> :
                     <MABTemplate showRightButton={false} showLeftButton={false}>
                         <QuickActionButton className="w-full" onClick={() => setIsCreatingStore(true)} icon={Plus} label={"Create Store"} ariaLabel={"Create Store"} />

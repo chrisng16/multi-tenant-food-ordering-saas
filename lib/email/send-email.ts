@@ -1,6 +1,6 @@
 import { getEmailTemplate } from "@/lib/email/email-template"
 import { transporter } from "@/lib/email/transporter"
-import { env } from "@/lib/env"
+
 import { EmailTemplateType } from "@/types/email"
 
 interface EmailOptions {
@@ -16,9 +16,9 @@ export async function sendEmail(
     type: EmailTemplateType,
     options: EmailOptions
 ) {
-    const siteName = env.SITE_NAME
-    const supportEmail = env.SUPPORT_EMAIL
-    const expiresIn = options.expiresIn || parseInt(env.VERIFICATION_EXPIRES_MINUTES || "15")
+    const siteName = process.env.SITE_NAME || "MyApp"
+    const supportEmail = process.env.SUPPORT_EMAIL || "support@myapp.com"
+    const expiresIn = options.expiresIn || parseInt(process.env.VERIFICATION_EXPIRES_MINUTES || "15")
 
     const subject =
         options.subject ||

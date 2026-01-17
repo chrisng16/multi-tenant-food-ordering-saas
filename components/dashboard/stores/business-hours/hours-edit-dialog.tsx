@@ -1,4 +1,4 @@
-// components/business-hours/HoursEditDialog.tsx
+// components/dashboard/stores/business-hours/hours-edit-dialog.tsx
 "use client";
 
 import { X } from "lucide-react";
@@ -22,6 +22,8 @@ import {
     DAY_CHIPS,
     DAY_LABELS,
     DAY_ORDER,
+    getNextDay,
+    getPrevDay,
     inputValueToMinutes,
     isSameDayHours,
     minutesToInputValue,
@@ -55,7 +57,45 @@ function getInitialDraft(initialSelectedDays: DayKey[], weekHours: WeekHours): D
 
     if (initialSelectedDays.length === 1) {
         const day = initialSelectedDays[0];
-        const { mode, ranges } = cloneDayHours(weekHours[day]);
+        const dh = weekHours[day];
+
+        // If this day is a receiver of an overnight spill (prev day ends at 24:00
+        // and this day starts at 00:00), hide that midnight-start segment so the
+        // editor doesn't show the spillover piece. The selector still collapses
+        // the originating day's display into "(next day)".
+        if (dh.status === "ranges") {
+            const todayRanges = normalizeAndMergeRanges(dh.ranges);
+            const prev = weekHours[getPrevDay(day)];
+            const prevRanges = prev.status === "ranges" ? normalizeAndMergeRanges(prev.ranges) : [];
+            const prevHasEndOfDay = prevRanges.some((r) => r.endMin === 1440);
+            const hasMidnightStart = todayRanges.some((r) => r.startMin === 0);
+
+            if (prevHasEndOfDay && hasMidnightStart) {
+                const filtered = todayRanges.filter((r) => r.startMin !== 0);
+                if (filtered.length === 0) return { selectedDays: selected, mode: "closed", ranges: [] };
+                return { selectedDays: selected, mode: "ranges", ranges: filtered };
+            }
+
+            // If this day contains an end-of-day range and next day has a 00:00
+            // starting range, combine them into a single overnight range for
+            // editing convenience: show `start -> end` where end < start.
+            const endOfDay = todayRanges.find((r) => r.endMin === 1440) ?? null;
+            if (endOfDay) {
+                const next = weekHours[getNextDay(day)];
+                if (next.status === "ranges") {
+                    const nextRanges = normalizeAndMergeRanges(next.ranges);
+                    const startOfNext = nextRanges.find((r) => r.startMin === 0) ?? null;
+                    if (startOfNext) {
+                        const merged = todayRanges.filter((r) => r !== endOfDay);
+                        // Represent as an overnight range where endMin < startMin.
+                        merged.push({ startMin: endOfDay.startMin, endMin: startOfNext.endMin });
+                        return { selectedDays: selected, mode: "ranges", ranges: merged };
+                    }
+                }
+            }
+        }
+
+        const { mode, ranges } = cloneDayHours(dh);
         return { selectedDays: selected, mode, ranges };
     }
 
@@ -75,20 +115,79 @@ function getInitialDraft(initialSelectedDays: DayKey[], weekHours: WeekHours): D
     };
 }
 
+function isOvernightRange(r: TimeRange): boolean {
+    return r.endMin < r.startMin;
+}
+
+function expandRangesPerDay(selectedDays: Set<DayKey>, ranges: TimeRange[]): Map<DayKey, TimeRange[]> {
+    const perDay = new Map<DayKey, TimeRange[]>();
+
+    const push = (day: DayKey, r: TimeRange) => {
+        const arr = perDay.get(day) ?? [];
+        arr.push(r);
+        perDay.set(day, arr);
+    };
+
+    for (const day of selectedDays) {
+        for (const r of ranges) {
+            if (!isOvernightRange(r)) {
+                push(day, { ...r });
+            } else {
+                // Split across midnight:
+                // day: start -> 24:00
+                // next: 00:00 -> end
+                push(day, { startMin: r.startMin, endMin: 1440 });
+                push(getNextDay(day), { startMin: 0, endMin: r.endMin });
+            }
+        }
+    }
+
+    return perDay;
+}
+
+function mergeIntoDayHours(existing: DayHours, additions: TimeRange[]): DayHours {
+    if (existing.status === "open24") return existing;
+
+    const add = normalizeAndMergeRanges(additions);
+    if (add.length === 0) return existing;
+
+    if (existing.status === "closed") return { status: "ranges", ranges: add };
+
+    // existing.status === "ranges"
+    const combined = normalizeAndMergeRanges([...existing.ranges, ...add]);
+    return combined.length ? { status: "ranges", ranges: combined } : { status: "closed" };
+}
+
 function applyDraftToWeek(weekHours: WeekHours, draft: Draft): WeekHours {
     const next: WeekHours = { ...weekHours };
 
-    let dayHours: DayHours;
     if (draft.mode === "closed") {
-        dayHours = { status: "closed" };
-    } else if (draft.mode === "open24") {
-        dayHours = { status: "open24" };
-    } else {
-        const merged = normalizeAndMergeRanges(draft.ranges);
-        dayHours = merged.length ? { status: "ranges", ranges: merged } : { status: "closed" };
+        for (const d of draft.selectedDays) next[d] = { status: "closed" };
+        return next;
     }
 
-    for (const d of draft.selectedDays) next[d] = dayHours;
+    if (draft.mode === "open24") {
+        for (const d of draft.selectedDays) next[d] = { status: "open24" };
+        return next;
+    }
+
+    // ranges mode
+    const perDay = expandRangesPerDay(draft.selectedDays, draft.ranges);
+
+    // Overwrite selected days with their contributions (merged)
+    for (const d of draft.selectedDays) {
+        const contrib = perDay.get(d) ?? [];
+        const merged = normalizeAndMergeRanges(contrib);
+        next[d] = merged.length ? { status: "ranges", ranges: merged } : { status: "closed" };
+    }
+
+    // Merge spillover into non-selected days
+    for (const [day, additions] of perDay.entries()) {
+        if (!draft.selectedDays.has(day)) {
+            next[day] = mergeIntoDayHours(next[day], additions);
+        }
+    }
+
     return next;
 }
 
@@ -96,16 +195,20 @@ function validateDraft(draft: Draft): { ok: boolean; message?: string } {
     if (draft.selectedDays.size === 0) return { ok: false, message: "Select at least one day." };
     if (draft.mode !== "ranges") return { ok: true };
 
-    // Validate raw entries are well-formed; merged result will eliminate overlaps/touching
     for (const r of draft.ranges) {
         if (!Number.isFinite(r.startMin) || !Number.isFinite(r.endMin)) {
             return { ok: false, message: "Enter valid times." };
         }
-        if (r.startMin >= r.endMin) return { ok: false, message: "Open time must be before close time." };
+        // Allow overnight (end < start). Only disallow identical times.
+        if (r.startMin === r.endMin) {
+            return { ok: false, message: "Open and close time cannot be the same." };
+        }
     }
 
-    const merged = normalizeAndMergeRanges(draft.ranges);
-    if (merged.length === 0) return { ok: false, message: "Add at least one valid time range." };
+    // Must yield at least one contribution once overnight splitting is applied.
+    const perDay = expandRangesPerDay(draft.selectedDays, draft.ranges);
+    const hasAny = Array.from(perDay.values()).some((rs) => normalizeAndMergeRanges(rs).length > 0);
+    if (!hasAny) return { ok: false, message: "Add at least one valid time range." };
 
     return { ok: true };
 }
@@ -113,9 +216,7 @@ function validateDraft(draft: Draft): { ok: boolean; message?: string } {
 export function HoursEditDialog(props: HoursEditDialogProps) {
     const { open, onOpenChange, initialSelectedDays, weekHours, onSave } = props;
 
-    const [draft, setDraft] = React.useState<Draft>(() =>
-        getInitialDraft(initialSelectedDays, weekHours),
-    );
+    const [draft, setDraft] = React.useState<Draft>(() => getInitialDraft(initialSelectedDays, weekHours));
     const [error, setError] = React.useState<string | null>(null);
 
     // Reset draft whenever the dialog opens (or selection changes)
@@ -127,7 +228,6 @@ export function HoursEditDialog(props: HoursEditDialogProps) {
     }, [open, initialSelectedDays.join("|")]);
 
     const selectedCount = draft.selectedDays.size;
-
     const validation = React.useMemo(() => validateDraft(draft), [draft]);
 
     const toggleDay = (day: DayKey) => {
@@ -155,22 +255,30 @@ export function HoursEditDialog(props: HoursEditDialogProps) {
         });
     };
 
-    /**
-     * "Automatic merge": do it after user commits an input (blur),
-     * so the UI doesn’t jump while they’re editing.
-     */
+    // Merge non-overnight ranges on blur. Invalid or overnight ranges are preserved
+    // so the user can correct them; only valid regular ranges are merged.
     const mergeRangesNow = () => {
-        setDraft((prev) => ({ ...prev, ranges: normalizeAndMergeRanges(prev.ranges) }));
-    };
+        setDraft((prev) => {
+            const overnight = prev.ranges.filter(isOvernightRange);
+            const regular = prev.ranges.filter((r) => !isOvernightRange(r));
 
+            const validRegular = regular.filter(
+                (r) => Number.isFinite(r.startMin) && Number.isFinite(r.endMin) && r.startMin < r.endMin
+            );
+
+            const invalidRegular = regular.filter(
+                (r) => !(Number.isFinite(r.startMin) && Number.isFinite(r.endMin) && r.startMin < r.endMin)
+            );
+
+            const mergedRegular = normalizeAndMergeRanges(validRegular);
+            return { ...prev, ranges: [...overnight, ...mergedRegular, ...invalidRegular] };
+        });
+    };
     const addRange = () => {
         setDraft((prev) => {
-            const merged = normalizeAndMergeRanges(prev.ranges);
-            const last = merged[merged.length - 1];
-            const startMin = last ? Math.min(last.endMin, 23 * 60 + 59) : 9 * 60;
-            const endMin = Math.min(startMin + 60, 1440);
-            const nextRanges = [...merged, { startMin, endMin }];
-            return { ...prev, mode: "ranges", ranges: nextRanges };
+            // Add a blank range so the inputs appear empty and the user fills them.
+            const blankRange = { startMin: NaN, endMin: NaN } as TimeRange;
+            return { ...prev, mode: "ranges", ranges: [...prev.ranges, blankRange] };
         });
     };
 
@@ -189,13 +297,7 @@ export function HoursEditDialog(props: HoursEditDialogProps) {
         }
         setError(null);
 
-        // Ensure merge is applied on save as well (required).
-        const finalized: Draft =
-            draft.mode === "ranges"
-                ? { ...draft, ranges: normalizeAndMergeRanges(draft.ranges) }
-                : draft;
-
-        const next = applyDraftToWeek(weekHours, finalized);
+        const next = applyDraftToWeek(weekHours, draft);
         onSave(next);
         onOpenChange(false);
     };
@@ -259,13 +361,18 @@ export function HoursEditDialog(props: HoursEditDialogProps) {
                 {draft.mode === "ranges" && (
                     <div className="mt-4 grid gap-3">
                         {draft.ranges.map((r, idx) => (
-                            <div key={idx} className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                            <div
+                                key={idx}
+                                className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+                            >
                                 <div className="grid gap-1">
                                     <Label className="text-sm">Open time</Label>
                                     <Input
                                         type="time"
                                         value={minutesToInputValue(r.startMin)}
-                                        onChange={(e) => updateRange(idx, "startMin", inputValueToMinutes(e.target.value))}
+                                        onChange={(e) =>
+                                            updateRange(idx, "startMin", inputValueToMinutes(e.target.value))
+                                        }
                                         onBlur={mergeRangesNow}
                                         aria-label={`Open time for range ${idx + 1}`}
                                     />
@@ -276,7 +383,9 @@ export function HoursEditDialog(props: HoursEditDialogProps) {
                                     <Input
                                         type="time"
                                         value={minutesToInputValue(r.endMin)}
-                                        onChange={(e) => updateRange(idx, "endMin", inputValueToMinutes(e.target.value))}
+                                        onChange={(e) =>
+                                            updateRange(idx, "endMin", inputValueToMinutes(e.target.value))
+                                        }
                                         onBlur={mergeRangesNow}
                                         aria-label={`Close time for range ${idx + 1}`}
                                     />
@@ -303,7 +412,8 @@ export function HoursEditDialog(props: HoursEditDialogProps) {
                                 Add hours
                             </Button>
                             <div className="text-xs text-muted-foreground">
-                                Overlapping or touching ranges are merged automatically (for example, 9:00–13:00 and 12:00–17:00 becomes 9:00–17:00).
+                                Overnight is supported (e.g., 9:00 PM–2:00 AM). Overlapping or touching ranges
+                                are merged automatically within a day.
                             </div>
                         </div>
                     </div>

@@ -1,9 +1,7 @@
 import { db } from "@/db"
 import { sendEmail } from "@/lib/email/send-email"
-import { env } from "@/lib/env"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { organization } from "better-auth/plugins"
 import { emailOTP } from "better-auth/plugins/email-otp"
 
 export const auth = betterAuth({
@@ -16,13 +14,13 @@ export const auth = betterAuth({
             await sendEmail("resetPassword", { to: user.email, url })
         },
         resetPasswordTokenExpiresIn:
-            parseInt(env.RESET_PASSWORD_EXPIRES_MINUTES || "15") * 60,
+            parseInt(process.env.RESET_PASSWORD_EXPIRES_MINUTES || "15") * 60,
     },
 
     emailVerification: {
         sendOnSignUp: true,
         autoSignInAfterVerification: true,
-        expiresIn: parseInt(env.VERIFICATION_EXPIRES_MINUTES || "15") * 60,
+        expiresIn: parseInt(process.env.VERIFICATION_EXPIRES_MINUTES || "15") * 60,
         sendVerificationEmail: async ({ user, url }) => {
             await sendEmail("verification", { to: user.email, url })
         },
@@ -32,26 +30,13 @@ export const auth = betterAuth({
     },
 
     plugins: [
-        organization({
-            schema: {
-                organization: {
-                    additionalFields: {
-                        description: {
-                            type: "string",
-                            input: true,
-                            required: false,
-                        },
-                    },
-                },
-            },
-        }),
         emailOTP({
             overrideDefaultEmailVerification: false,
             async sendVerificationOTP({ email, otp, type }) {
                 await sendEmail("otp", { to: email, token: otp })
             },
             otpLength: 6,
-            expiresIn: parseInt(env.OTP_EXPIRES_MINUTES || "5") * 60,
+            expiresIn: parseInt(process.env.OTP_EXPIRES_MINUTES || "5") * 60,
         }),
     ],
 })

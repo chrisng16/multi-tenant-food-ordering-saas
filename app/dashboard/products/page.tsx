@@ -14,7 +14,7 @@ export default function ProductsPage() {
         <div className="flex h-[90dvh] sm:h-[calc(100dvh-var(--header-height)-16px)] flex-col overflow-hidden">
             <div className="@container/main flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6 min-h-0 px-4 lg:px-6">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Products</h1>
+                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">Products</h1>
                     <p className="text-muted-foreground">
                         Select a store to manage its products and menu items
                     </p>

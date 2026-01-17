@@ -15,8 +15,6 @@ export function isPathActive(pathname: string, href: string) {
   const p = normalize(pathLastTwoSegments)
   const h = normalize(href)
 
-  console.log(p, h)
-
   // Check if pathname contains the href (simple substring match for "products" use case)
   return p.includes(h)
 }

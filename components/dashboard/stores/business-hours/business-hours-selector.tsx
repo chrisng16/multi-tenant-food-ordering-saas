@@ -1,3 +1,4 @@
+// components/dashboard/stores/business-hours/business-hours-selector.tsx
 "use client";
 
 import { Pencil } from "lucide-react";
@@ -5,10 +6,17 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 import { HoursEditDialog } from "@/components/dashboard/stores/business-hours/hours-edit-dialog";
 import type { DayKey, WeekHours } from "@/components/dashboard/stores/business-hours/time-utils";
-import { DAY_LABELS, DAY_ORDER, formatDayHours } from "@/components/dashboard/stores/business-hours/time-utils";
+import {
+    DAY_LABELS,
+    DAY_ORDER,
+    formatDayHoursForSelector,
+} from "@/components/dashboard/stores/business-hours/time-utils";
+
+
 
 type BusinessHoursSelectorProps = {
     value: WeekHours;
@@ -37,7 +45,7 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
     };
 
     return (
-        <div className="space-y-1">
+        <div className={cn("space-y-1", className)}>
             <div className="space-y-2">
                 <h2 className="leading-none font-semibold">Business Hours</h2>
                 <p className="text-muted-foreground text-sm">Set the hours your store is open each day</p>
@@ -49,7 +57,9 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
                         <div className="flex items-center justify-between py-2">
                             <div className="text-sm">{DAY_LABELS[day]}</div>
                             <div className="flex items-center gap-1">
-                                <div className="text-sm text-muted-foreground">{formatDayHours(value[day])}</div>
+                                <div className="text-sm text-muted-foreground">
+                                    {formatDayHoursForSelector(value, day)}
+                                </div>
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -65,8 +75,8 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
                         {idx !== DAY_ORDER.length - 1 && <Separator />}
                     </React.Fragment>
                 ))}
-
             </div>
+
             <div className="flex flex-wrap items-center justify-center gap-2">
                 <Button type="button" variant="outline" disabled={disabled} onClick={() => openForDays(DAY_ORDER)}>
                     Edit all hours
@@ -89,3 +99,5 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
         </div>
     );
 }
+
+
