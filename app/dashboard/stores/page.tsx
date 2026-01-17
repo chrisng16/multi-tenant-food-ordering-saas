@@ -94,19 +94,6 @@ export default function StoresPage() {
                         }
                     </>
             }
-            {
-                isCreatingStore &&
-                <div className="hidden p-4 border-t sm:flex gap-3 sm:items-center sm:justify-between">
-                    <div className="flex gap-3 sm:justify-end">
-                        <Button type="submit" disabled={isPending} onClick={handleSubmit} className="flex-1 sm:flex-none">
-                            <Save className="size-4" /> Save Store
-                        </Button>
-                        <Button type="button" variant="outline" onClick={() => setIsCreatingStore(false)} className="flex-1 sm:flex-none">
-                            Cancel
-                        </Button>
-                    </div>
-                </div>
-            }
 
             <MobileActionBar>
                 {isCreatingStore ?

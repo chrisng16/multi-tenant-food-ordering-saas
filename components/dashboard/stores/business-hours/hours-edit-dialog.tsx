@@ -5,13 +5,7 @@ import { X } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -148,25 +142,52 @@ function expandRangesPerDay(selectedDays: Set<DayKey>, ranges: TimeRange[]): Map
 function mergeIntoDayHours(existing: DayHours, additions: TimeRange[]): DayHours {
     if (existing.status === "open24") return existing;
 
-    const add = normalizeAndMergeRanges(additions);
+    // When merging spillover into a different day, avoid merging *touching* ranges.
+    // This preserves distinct segments like 00:00–02:00 and 02:00–17:30 as separate ranges,
+    // so the originating day can correctly display its overnight close time.
+    const add = normalizeAndMergeRanges(additions, { mergeTouching: false });
     if (add.length === 0) return existing;
 
     if (existing.status === "closed") return { status: "ranges", ranges: add };
 
     // existing.status === "ranges"
-    const combined = normalizeAndMergeRanges([...existing.ranges, ...add]);
+    const combined = normalizeAndMergeRanges([...existing.ranges, ...add], { mergeTouching: false });
     return combined.length ? { status: "ranges", ranges: combined } : { status: "closed" };
+}
+
+function getIncomingSpillover(week: WeekHours, day: DayKey): TimeRange[] {
+    const dh = week[day];
+    if (dh.status !== "ranges") return [];
+
+    const prev = week[getPrevDay(day)];
+    if (prev.status !== "ranges") return [];
+
+    const prevRanges = normalizeAndMergeRanges(prev.ranges);
+    const prevHasEndOfDay = prevRanges.some((r) => r.endMin === 1440);
+    if (!prevHasEndOfDay) return [];
+
+    const todayRanges = normalizeAndMergeRanges(dh.ranges, { mergeTouching: false });
+    return todayRanges.filter((r) => r.startMin === 0).map((r) => ({ ...r }));
 }
 
 function applyDraftToWeek(weekHours: WeekHours, draft: Draft): WeekHours {
     const next: WeekHours = { ...weekHours };
 
     if (draft.mode === "closed") {
-        for (const d of draft.selectedDays) next[d] = { status: "closed" };
+        // If a selected day is receiving an overnight spillover from its previous day,
+        // preserve that 00:00-starting segment even if the day is set to "Closed".
+        // The selector/editor already hide these spillover-only ranges so the day still
+        // appears "Closed" to the user, while the originating day can still display
+        // an overnight close time (e.g. Wed 9pm–2am even if Thu is "Closed").
+        for (const d of draft.selectedDays) {
+            const incoming = getIncomingSpillover(weekHours, d);
+            next[d] = incoming.length ? { status: "ranges", ranges: incoming } : { status: "closed" };
+        }
         return next;
     }
 
     if (draft.mode === "open24") {
+        // Open 24 hours subsumes any spillover.
         for (const d of draft.selectedDays) next[d] = { status: "open24" };
         return next;
     }
@@ -174,10 +195,11 @@ function applyDraftToWeek(weekHours: WeekHours, draft: Draft): WeekHours {
     // ranges mode
     const perDay = expandRangesPerDay(draft.selectedDays, draft.ranges);
 
-    // Overwrite selected days with their contributions (merged)
+    // Overwrite selected days with their contributions (merged), but retain any incoming spillover.
     for (const d of draft.selectedDays) {
+        const incoming = getIncomingSpillover(weekHours, d);
         const contrib = perDay.get(d) ?? [];
-        const merged = normalizeAndMergeRanges(contrib);
+        const merged = normalizeAndMergeRanges([...incoming, ...contrib]);
         next[d] = merged.length ? { status: "ranges", ranges: merged } : { status: "closed" };
     }
 
@@ -213,13 +235,13 @@ function validateDraft(draft: Draft): { ok: boolean; message?: string } {
     return { ok: true };
 }
 
+
 export function HoursEditDialog(props: HoursEditDialogProps) {
     const { open, onOpenChange, initialSelectedDays, weekHours, onSave } = props;
 
     const [draft, setDraft] = React.useState<Draft>(() => getInitialDraft(initialSelectedDays, weekHours));
     const [error, setError] = React.useState<string | null>(null);
 
-    // Reset draft whenever the dialog opens (or selection changes)
     React.useEffect(() => {
         if (!open) return;
         setDraft(getInitialDraft(initialSelectedDays, weekHours));

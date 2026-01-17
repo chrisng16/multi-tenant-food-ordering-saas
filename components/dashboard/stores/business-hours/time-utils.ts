@@ -86,10 +86,22 @@ export function minutesToTimeLabel(min: number): string {
 }
 
 /**
- * Sort + merge overlapping OR touching ranges.
- * Merges when next.startMin <= last.endMin.
+ * Sort + merge ranges.
+ *
+ * By default we merge overlapping OR touching ranges (next.startMin <= last.endMin)
+ * which matches the "within a day" UX (e.g., 9:00–12:00 plus 12:00–17:00 becomes 9:00–17:00).
+ *
+ * For cross-day merges (overnight spillover into the next day), merging *touching* ranges can
+ * produce surprising displays: e.g., a spillover [00:00–02:00] touching a separate range
+ * [02:00–17:30] would become [00:00–17:30], causing the previous day to appear open until 5:30 PM.
+ * In those cases, set `mergeTouching` to false so only *overlaps* merge.
  */
-export function normalizeAndMergeRanges(ranges: TimeRange[]): TimeRange[] {
+export function normalizeAndMergeRanges(
+    ranges: TimeRange[],
+    opts: { mergeTouching?: boolean } = {}
+): TimeRange[] {
+    const mergeTouching = opts.mergeTouching ?? true;
+
     const cleaned = ranges
         .map((r) => ({
             startMin: clampMinutes(r.startMin),
@@ -107,7 +119,8 @@ export function normalizeAndMergeRanges(ranges: TimeRange[]): TimeRange[] {
             continue;
         }
         const last = merged[merged.length - 1];
-        if (r.startMin <= last.endMin) {
+        const shouldMerge = mergeTouching ? r.startMin <= last.endMin : r.startMin < last.endMin;
+        if (shouldMerge) {
             last.endMin = Math.max(last.endMin, r.endMin);
         } else {
             merged.push({ ...r });
@@ -125,7 +138,6 @@ export function formatDayHours(day: DayHours): string {
         .map((r) => `${minutesToTimeLabel(r.startMin)} - ${minutesToTimeLabel(r.endMin)}`)
         .join(", ");
 }
-
 
 export function formatDayHoursForSelector(week: WeekHours, dayKey: DayKey): string {
     const day = week[dayKey];
@@ -145,7 +157,9 @@ export function formatDayHoursForSelector(week: WeekHours, dayKey: DayKey): stri
     if (prevHasEndOfDay && todayHasMidnightStart) {
         const filtered = todayRanges.filter((r) => r.startMin !== 0);
         if (filtered.length === 0) return "Closed";
-        return filtered.map((r) => `${minutesToTimeLabel(r.startMin)} - ${minutesToTimeLabel(r.endMin)}`).join(", ");
+        return filtered
+            .map((r) => `${minutesToTimeLabel(r.startMin)} - ${minutesToTimeLabel(r.endMin)}`)
+            .join(", ");
     }
 
     // Otherwise, collapse overnight spillover that continues into the next day.
@@ -170,9 +184,10 @@ export function formatDayHoursForSelector(week: WeekHours, dayKey: DayKey): stri
         return parts.join(", ");
     }
 
-    return todayRanges.map((r) => `${minutesToTimeLabel(r.startMin)} - ${minutesToTimeLabel(r.endMin)}`).join(", ");
+    return todayRanges
+        .map((r) => `${minutesToTimeLabel(r.startMin)} - ${minutesToTimeLabel(r.endMin)}`)
+        .join(", ");
 }
-
 
 export function isSameDayHours(a: DayHours, b: DayHours): boolean {
     if (a.status !== b.status) return false;
@@ -187,87 +202,6 @@ export function isSameDayHours(a: DayHours, b: DayHours): boolean {
     return true;
 }
 
-// Check if the store is open on a given day at minute `min` (0..1439).
-export function isOpenAt(week: WeekHours, dayKey: DayKey, min: number): boolean {
-    const day = week[dayKey];
-    if (day.status === "open24") return true;
-    if (day.status === "closed") return false;
-
-    const todayRanges = normalizeAndMergeRanges(day.ranges);
-    // Direct match on today's ranges
-    if (todayRanges.some((r) => r.startMin <= min && min < r.endMin)) return true;
-
-    // Check for overnight spillover from previous day: prev ends at 1440 and next (today) starts at 0
-    const prev = week[getPrevDay(dayKey)];
-    if (prev.status === "ranges") {
-        const prevRanges = normalizeAndMergeRanges(prev.ranges);
-        const prevHasEndOfDay = prevRanges.find((r) => r.endMin === 1440) ?? null;
-        if (prevHasEndOfDay) {
-            // find today's starting range
-            const startOfDay = todayRanges.find((r) => r.startMin === 0) ?? null;
-            if (startOfDay && min < startOfDay.endMin) return true;
-        }
-    }
-
-    return false;
-}
-
-type DayMinute = { day: DayKey; minute: number };
-
-// Find the next opening time at or after `min` on `dayKey`. Returns null if no opening found within 7 days.
-export function getNextOpening(week: WeekHours, dayKey: DayKey, min: number): DayMinute | null {
-    const startIdx = DAY_ORDER.indexOf(dayKey);
-
-    for (let d = 0; d < 7; d++) {
-        const idx = (startIdx + d) % 7;
-        const dk = DAY_ORDER[idx];
-        const dh = week[dk];
-        if (dh.status === "open24") {
-            // opens at 00:00 of this day
-            if (d === 0 && min < 1440) return { day: dk, minute: 0 };
-            if (d > 0) return { day: dk, minute: 0 };
-        }
-
-        if (dh.status === "ranges") {
-            const ranges = normalizeAndMergeRanges(dh.ranges);
-            if (d === 0) {
-                // look for a range starting after min
-                for (const r of ranges) {
-                    if (r.startMin >= min) return { day: dk, minute: r.startMin };
-                }
-            } else {
-                if (ranges.length > 0) return { day: dk, minute: ranges[0].startMin };
-            }
-        }
-    }
-
-    return null;
-}
-
-// Compute earliest pickup for restaurants when closed: next opening time + `offsetMin` minutes.
-// Returns null if no upcoming opening found.
-export function getEarliestPickupIfClosed(
-    week: WeekHours,
-    dayKey: DayKey,
-    min: number,
-    storeType: string,
-    offsetMin = 30
-): DayMinute | null {
-    if (isOpenAt(week, dayKey, min)) return { day: dayKey, minute: min };
-    if (storeType !== "restaurant") return null;
-
-    const next = getNextOpening(week, dayKey, min + 1);
-    if (!next) return null;
-
-    let m = next.minute + offsetMin;
-    let dayIdx = DAY_ORDER.indexOf(next.day);
-    if (m >= 1440) {
-        dayIdx = (dayIdx + Math.floor(m / 1440)) % 7;
-        m = m % 1440;
-    }
-
-    return { day: DAY_ORDER[dayIdx], minute: m };
-}
 
 export const defaultWeekHours: WeekHours = {
     sun: { status: "closed" },
