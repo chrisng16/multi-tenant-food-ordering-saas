@@ -55,7 +55,7 @@ const SignUpForm = () => {
         const { name, email, password } = values
 
         await authClient.signUp.email(
-            { email, password, name, callbackURL: "/dashboard" },
+            { email, password, name, callbackURL: "/dashboard/overview" },
             {
                 onRequest: () => setLoading(true),
                 onSuccess: () => {

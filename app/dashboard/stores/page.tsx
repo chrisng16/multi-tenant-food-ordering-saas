@@ -1,5 +1,6 @@
 "use client"
 
+import { createStore } from "@/actions/store/create-store"
 import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar"
 import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
 import { WeekHours, defaultWeekHours } from "@/components/dashboard/stores/business-hours/time-utils"
@@ -7,12 +8,14 @@ import StoreInfoEntry from "@/components/dashboard/stores/create-modify-store/st
 import QuickActionButton from "@/components/dashboard/stores/quick-action-button"
 import { StoreCard } from "@/components/dashboard/stores/store-card"
 import { Button } from "@/components/ui/button"
+import { ClientActionError } from "@/lib/action/client-action-error"
+import { unwrapActionResult } from "@/lib/action/unwrap-action-result"
 import { StoreSchema } from "@/schemas/store"
 import { useMutation } from "@tanstack/react-query"
 import { Plus, Save, Store, X } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
-
-import { createStore } from "@/actions/server/store"
+import { toast } from "sonner"
 
 // Mock data - in real app, this would come from API/database
 const mockStores = [
@@ -39,13 +42,29 @@ export default function StoresPage() {
         address: ''
     });
 
+    const router = useRouter()
+
     const { isPending, mutate } = useMutation({
-        mutationFn: (newStore: StoreSchema) => createStore(newStore),
+        mutationFn: async (input: StoreSchema) => unwrapActionResult(await createStore(input)),
         onSuccess: () => {
-            // Invalidate and refetch stores list or update UI accordingly
             setIsCreatingStore(false);
-            console.log("Store created successfully");
-        }
+            toast.success("Store created successfully");
+        },
+        onError: (err) => {
+            if (err instanceof ClientActionError) {
+                if (err.status === 401) {
+                    router.push("/sign-in");
+                    toast.error(err.message);
+                    return;
+                }
+
+                toast.error(err.message);
+                return;
+            }
+
+            // fallback (should be rare)
+            toast.error("Unexpected error");
+        },
     })
 
     const handleSubmit = () => {
