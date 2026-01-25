@@ -1,29 +1,6 @@
-// components/business-hours/timezone-selector.tsx
-"use client";
-
-import { Check, ChevronsUpDown } from "lucide-react";
-import * as React from "react";
-import type { UseFormRegisterReturn } from "react-hook-form";
-
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
-type TimezoneSelectorProps = {
-    field: UseFormRegisterReturn;
-    error?: string;
-    disabled?: boolean;
-    placeholder?: string;
-    defaultTimezone?: string;
-};
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Check, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
 function safeSupportedTimezones(): string[] {
     const anyIntl = Intl as any;
@@ -44,179 +21,143 @@ function safeSupportedTimezones(): string[] {
     ];
 }
 
-/**
- * GMT offset formatter: (GMT+02:00), (GMT-07:00)
- * Cached and deterministic (no PST/EST)
- */
-function computeGmtOffsetLabel(timezone: string): string {
+function getTimezoneOffset(timezone: string): number {
     try {
-        const now = new Date();
-        const utc = new Date(
-            now.toLocaleString("en-US", { timeZone: "UTC" })
-        );
-        const local = new Date(
-            now.toLocaleString("en-US", { timeZone: timezone })
-        );
-
-        const offsetMinutes = (local.getTime() - utc.getTime()) / 60000;
-        const sign = offsetMinutes >= 0 ? "+" : "-";
-        const abs = Math.abs(offsetMinutes);
-        const hours = String(Math.floor(abs / 60));
-
-        return `(GMT${sign}${hours}) ${timezone.replace(/_/g, " ")}`;
+        const date = new Date();
+        const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+        const tzDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+        return (tzDate.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
     } catch {
-        return timezone.replace(/_/g, " ");
+        return 0;
     }
 }
 
-export function TimezoneSelector(props: TimezoneSelectorProps) {
-    const {
-        field,
-        error,
-        disabled,
-        placeholder = "Select a timezone (e.g., America/New_York)",
-        defaultTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles",
-    } = props;
+function formatTimezoneLabel(timezone: string): string {
+    const offset = getTimezoneOffset(timezone);
+    const sign = offset >= 0 ? '+' : '-';
+    const hours = Math.floor(Math.abs(offset));
+    const formattedOffset = `${sign}${hours}`;
+    const displayName = timezone.replace(/_/g, ' ');
+    return `(GMT${formattedOffset}) ${displayName}`;
+}
 
-    const [open, setOpen] = React.useState(false);
-    const [query, setQuery] = React.useState("");
+type TimezoneSelectorProps = {
+    value: string;
+    onChange: (value: string) => void;
+    disabled?: boolean;
+};
 
-    const timezones = React.useMemo(() => safeSupportedTimezones(), []);
+export const TimezoneSelector = ({ value, onChange, disabled }: TimezoneSelectorProps) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
-    // ---- label cache (GMT only)
-    const labelCache = React.useRef(new Map<string, string>());
-    const getLabel = React.useCallback((tz: string) => {
-        const cached = labelCache.current.get(tz);
-        if (cached) return cached;
+    const timezones = useMemo(() => safeSupportedTimezones(), []);
 
-        const label = computeGmtOffsetLabel(tz);
-        labelCache.current.set(tz, label);
-        return label;
-    }, []);
+    const timezonesWithLabels = useMemo(() => {
+        return timezones.map(tz => ({
+            value: tz,
+            label: formatTimezoneLabel(tz),
+            offset: getTimezoneOffset(tz)
+        })).sort((a, b) => a.offset - b.offset || a.label.localeCompare(b.label));
+    }, [timezones]);
 
-    // ---- search cache
-    const searchCache = React.useRef(new Map<string, string>());
-    const getSearchValue = React.useCallback((tz: string) => {
-        const cached = searchCache.current.get(tz);
-        if (cached) return cached;
+    const selectedTimezone = useMemo(() => {
+        return timezonesWithLabels.find(tz => tz.value === value) || timezonesWithLabels[0];
+    }, [value, timezonesWithLabels]);
 
-        const value = `${tz} ${tz.replace(/_/g, " ")}`.toLowerCase();
-        searchCache.current.set(tz, value);
-        return value;
-    }, []);
+    const filteredTimezones = useMemo(() => {
+        if (!searchQuery) return timezonesWithLabels;
+        const query = searchQuery.toLowerCase();
+        return timezonesWithLabels.filter(tz =>
+            tz.label.toLowerCase().includes(query) ||
+            tz.value.toLowerCase().includes(query)
+        );
+    }, [searchQuery, timezonesWithLabels]);
 
-    const [value, setValue] = React.useState<string>(() => defaultTimezone);
-
-    React.useEffect(() => {
-        setValue((v) => v || defaultTimezone);
-    }, [defaultTimezone]);
-
-    const selectedTz = value || defaultTimezone;
-    const selectedLabel = getLabel(selectedTz);
-
-    // ---- MANUAL FILTERING (big win)
-    const filteredTimezones = React.useMemo(() => {
-        if (!query) return timezones;
-
-        const q = query.toLowerCase();
-        return timezones.filter((tz) => getSearchValue(tz).includes(q));
-    }, [query, timezones, getSearchValue]);
-
-    // Keep selected timezone at the top
-    const orderedTimezones = React.useMemo(() => {
-        if (!filteredTimezones.includes(selectedTz)) return filteredTimezones;
-        return [
-            selectedTz,
-            ...filteredTimezones.filter((t) => t !== selectedTz),
-        ];
-    }, [filteredTimezones, selectedTz]);
-
-    const commit = (tz: string) => {
-        setValue(tz);
-        field.onChange({ target: { name: field.name, value: tz } });
-        setQuery("");
-        setOpen(false);
+    const handleSelect = (timezone: string) => {
+        onChange(timezone);
+        setIsOpen(false);
+        setSearchQuery("");
     };
 
     return (
         <Field>
             <FieldLabel>Timezone</FieldLabel>
-
-            <input
-                type="hidden"
-                name={field.name}
-                ref={field.ref}
-                value={value}
-                onBlur={field.onBlur}
-            />
-
-            <Popover open={open} onOpenChange={setOpen} modal>
-                <PopoverTrigger asChild>
-                    <button
-                        type="button"
-                        className="relative w-full"
-                        disabled={disabled}
-                        aria-label="Select timezone"
-                    >
-                        <Input
-                            value={selectedLabel}
-                            readOnly
-                            placeholder={placeholder}
-                            disabled={disabled}
-                            className="w-full cursor-pointer pr-10 text-left"
-                        />
-                        <ChevronsUpDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" />
-                    </button>
-                </PopoverTrigger>
-
-                <PopoverContent
-                    className="z-50 w-[var(--radix-popover-trigger-width)] p-0"
-                    align="start"
-                    sideOffset={4}
+            <div className="relative">
+                {/* Selector Button */}
+                <button
+                    type="button"
+                    onClick={() => !disabled && setIsOpen(!isOpen)}
+                    disabled={disabled}
+                    className="w-full px-3 py-2 text-left bg-white dark:bg-input/30 border border-zinc-300 dark:border-zinc-700 rounded-lg hover:border-zinc-400 dark:hover:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                    <Command>
-                        <CommandInput
-                            placeholder="Search timezones..."
-                            value={query}
-                            onValueChange={setQuery}
-                            className="h-9"
-                            autoFocus
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-zinc-900 dark:text-zinc-100">
+                            {selectedTimezone.label}
+                        </span>
+                        <svg
+                            className={`w-4 h-4 text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </button>
+
+                {/* Dropdown */}
+                {isOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setIsOpen(false)}
                         />
-                        <CommandList>
-                            <CommandEmpty>No timezone found.</CommandEmpty>
 
-                            {/* Do not render list unless open */}
-                            {open && (
-                                <CommandGroup className="max-h-64 overflow-y-auto">
-                                    {orderedTimezones.map((tz) => (
-                                        <CommandItem
-                                            key={tz}
-                                            value={tz}
-                                            onSelect={() => commit(tz)}
-                                            className="flex items-center gap-2"
+                        {/* Dropdown Content */}
+                        <div className="absolute z-20 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl overflow-hidden">
+                            {/* Search Input */}
+                            <div className="p-3 border-b border-zinc-800">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search timezones..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-9 pr-3 py-2 bg-zinc-800 text-zinc-100 text-sm rounded-md border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-zinc-500"
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Timezone List */}
+                            <div className="max-h-64 overflow-y-auto">
+                                {filteredTimezones.length > 0 ? (
+                                    filteredTimezones.map((timezone) => (
+                                        <button
+                                            key={timezone.value}
+                                            type="button"
+                                            onClick={() => handleSelect(timezone.value)}
+                                            className="w-full px-4 py-2.5 text-left text-sm text-zinc-100 hover:bg-zinc-800 transition-colors flex items-center justify-between group"
                                         >
-                                            <span className="flex w-6 items-center">
-                                                <Check
-                                                    className={
-                                                        tz === selectedTz
-                                                            ? "h-4 w-4 text-primary opacity-100"
-                                                            : "h-4 w-4 opacity-0"
-                                                    }
-                                                />
-                                            </span>
-                                            <span className="truncate">
-                                                {getLabel(tz)}
-                                            </span>
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                            )}
-                        </CommandList>
-                    </Command>
-                </PopoverContent>
-            </Popover>
-
-            <FieldError>{error}</FieldError>
+                                            <span>{timezone.label}</span>
+                                            {timezone.value === value && (
+                                                <Check className="w-4 h-4 text-green-500" />
+                                            )}
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="px-4 py-8 text-center text-sm text-zinc-500">
+                                        No timezones found
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
         </Field>
     );
-}
+};

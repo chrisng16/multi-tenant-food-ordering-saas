@@ -1,5 +1,6 @@
 "use client"
 
+import { CompactStoreSwitcher } from "@/components/dashboard/stores/compact-store-switcher"
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -10,7 +11,6 @@ import {
 } from "@/components/ui/breadcrumb"
 import { ChevronRight } from "lucide-react"
 import Link from "next/link"
-import { CompactStoreSwitcher } from "../stores/compact-store-switcher"
 
 interface DashboardBreadcrumbV2Props {
     pathname: string

@@ -1,54 +1,63 @@
-"use client"
+"use client";
 
-import { createStore } from "@/actions/store/create-store"
-import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar"
-import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
-import { WeekHours, defaultWeekHours } from "@/components/dashboard/stores/business-hours/time-utils"
-import StoreInfoEntry from "@/components/dashboard/stores/create-modify-store/store-info-entry"
-import QuickActionButton from "@/components/dashboard/stores/quick-action-button"
-import { StoreCard } from "@/components/dashboard/stores/store-card"
-import { Button } from "@/components/ui/button"
-import { ClientActionError } from "@/lib/action/client-action-error"
-import { unwrapActionResult } from "@/lib/action/unwrap-action-result"
-import { StoreSchema } from "@/schemas/store"
-import { useMutation } from "@tanstack/react-query"
-import { Plus, Save, Store, X } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { toast } from "sonner"
+import { createStore } from "@/actions/store/create-store";
+import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template";
+import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar/mobile-action-bar";
+import QuickActionButton from "@/components/dashboard/common/mobile-action-bar/quick-action-button";
+import {
+    WeekHours,
+    defaultWeekHours,
+} from "@/components/dashboard/stores/business-hours/time-utils";
+import StoreInfoEntry from "@/components/dashboard/stores/create-modify-store/store-info-entry";
+import StoreCardDisplay from "@/components/dashboard/stores/store-card-display";
+import { Button } from "@/components/ui/button";
+import { ClientActionError } from "@/lib/action/client-action-error";
+import { unwrapActionResult } from "@/lib/action/unwrap-action-result";
+import { StoreSchema } from "@/schemas/store";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, Save, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
-// Mock data - in real app, this would come from API/database
-const mockStores = [
-    { id: "1", name: "My Awesome Store", slug: "my-awesome-store", description: "A great place to shop!" },
-    { id: "2", name: "Tech Hub", slug: "tech-hub", description: "Latest gadgets and electronics" },
-    { id: "4", name: "Home Essentials", slug: "home-essentials", description: "Everything you need for your home" },
-    { id: "5", name: "Book Haven", slug: "book-haven", description: "A paradise for book lovers" },
-    { id: "6", name: "Fitness Factory", slug: "fitness-factory", description: "Gear and equipment for an active lifestyle" },
-    { id: "7", name: "Beauty Bliss", slug: "beauty-bliss", description: "Skincare, makeup, and self-care products" },
-    { id: "8", name: "Pet Paradise", slug: "pet-paradise", description: "Supplies and treats for your furry friends" }
-]
+const defaultStoreDetails: StoreSchema = {
+    name: "",
+    slug: "",
+    logoUrl: undefined,
+    description: undefined,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles",
+    phone: undefined,
+    email: undefined,
+    address: undefined,
+}
 
 export default function StoresPage() {
-    const [isCreatingStore, setIsCreatingStore] = useState(false)
+    const [isCreatingStore, setIsCreatingStore] = useState(false);
     const [hours, setHours] = useState<WeekHours>(defaultWeekHours);
-    const [storeDetails, setStoreDetails] = useState<StoreSchema>({
-        name: '',
-        slug: '',
-        logoUrl: '',
-        description: '',
-        timezone: '',
-        phone: '',
-        email: '',
-        address: ''
-    });
+    const [isFormValid, setIsFormValid] = useState(false);
 
-    const router = useRouter()
+    const [storeDetails, setStoreDetails] = useState<StoreSchema>(defaultStoreDetails);
+
+    const router = useRouter();
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        console.log("Store Details Updated:", storeDetails);
+    }, [storeDetails]);
+
 
     const { isPending, mutate } = useMutation({
-        mutationFn: async (input: StoreSchema) => unwrapActionResult(await createStore(input)),
+        mutationFn: async ({
+            storeDetails,
+            hours,
+        }: {
+            storeDetails: StoreSchema;
+            hours: WeekHours;
+        }) => unwrapActionResult(await createStore(storeDetails, hours)),
         onSuccess: () => {
             setIsCreatingStore(false);
-            toast.success("Store created successfully");
+            toast.success("Store successfully created");
+            queryClient.invalidateQueries({ queryKey: ["stores"] });
         },
         onError: (err) => {
             if (err instanceof ClientActionError) {
@@ -65,70 +74,92 @@ export default function StoresPage() {
             // fallback (should be rare)
             toast.error("Unexpected error");
         },
-    })
+    });
 
     const handleSubmit = () => {
         // Handle form submission logic here
         console.log("Store Details Submitted:", storeDetails, hours);
         // Reset form or navigate as needed
-        mutate(storeDetails);
-    }
+        mutate({ storeDetails, hours });
+    };
 
     return (
         <>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">My Stores</h1>
-                    <p className="text-muted-foreground">Manage all your stores from one place</p>
+                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+                        My Stores
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Manage all your stores from one place
+                    </p>
                 </div>
-                <div className="hidden sm:block">
-                    <Button onClick={() => setIsCreatingStore(true)} className="sm:w-auto">
-                        <Plus className="size-4" /> Create Store
-                    </Button>
 
-                </div>
+                {!isCreatingStore && (
+                    <div className="hidden sm:block">
+                        <Button
+                            onClick={() => setIsCreatingStore(true)}
+                            className="sm:w-auto"
+                        >
+                            <Plus className="size-4" /> Create Store
+                        </Button>
+                    </div>
+                )}
             </div>
-            {
-                isCreatingStore ? <StoreInfoEntry mode="create" hours={hours} setHours={setHours} setStoreDetails={setStoreDetails} onSave={handleSubmit} onCancel={() => setIsCreatingStore(false)} /> :
-                    <>
-                        {
-                            mockStores.length > 0 ? (
-
-                                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] sm:pb-0">
-                                    {mockStores.map((store) => (
-                                        <StoreCard key={store.id} store={store} />
-                                    ))}
-                                </div>
-
-                            ) : (
-                                // Empty state (non-scrolling), still padded so the mobile bar doesn't cover it
-                                <div className="flex-1 min-h-0 pb-28 flex items-center justify-center">
-                                    <div className="text-center py-12">
-                                        <Store className="mx-auto h-12 w-12 text-muted-foreground" />
-                                        <h3 className="mt-4 text-base md:text-lg font-semibold">No stores yet</h3>
-                                        <p className="mt-2 text-muted-foreground">Get started by creating your first store.</p>
-                                    </div>
-                                </div>
-                            )
-                        }
-                    </>
-            }
+            {isCreatingStore ? (
+                <StoreInfoEntry
+                    mode="create"
+                    hours={hours}
+                    setHours={setHours}
+                    setStoreDetails={setStoreDetails}
+                    onSave={handleSubmit}
+                    onCancel={() => {
+                        setIsCreatingStore(false);
+                        setStoreDetails(defaultStoreDetails);
+                    }}
+                    isFormValid={isFormValid}
+                    setFormValid={setIsFormValid}
+                />
+            ) : (
+                <StoreCardDisplay />
+            )}
 
             <MobileActionBar>
-                {isCreatingStore ?
-                    <MABTemplate showRightButton={false} leftButton={<LeftButton onClick={() => setIsCreatingStore(false)} />}>
-                        <QuickActionButton className="w-full" onClick={handleSubmit} icon={Save} label={"Save"} ariaLabel={"Create Store"} />
-                    </MABTemplate> :
-                    <MABTemplate showRightButton={false} showLeftButton={false}>
-                        <QuickActionButton className="w-full" onClick={() => setIsCreatingStore(true)} icon={Plus} label={"Create Store"} ariaLabel={"Create Store"} />
+                {isCreatingStore ? (
+                    <MABTemplate
+                        showRightButton={false}
+                        leftButton={
+                            <LeftButton onClick={() => {
+                                setIsCreatingStore(false);
+                                setStoreDetails(defaultStoreDetails);
+                            }} />
+                        }
+                    >
+                        <QuickActionButton
+                            disabled={!isFormValid}
+                            className="w-full"
+                            onClick={handleSubmit}
+                            icon={Save}
+                            label={"Save"}
+                            ariaLabel={"Create Store"}
+                        />
                     </MABTemplate>
-                }
-            </MobileActionBar >
-
+                ) : (
+                    <MABTemplate showRightButton={false} showLeftButton={false}>
+                        <QuickActionButton
+                            className="w-full"
+                            onClick={() => setIsCreatingStore(true)}
+                            icon={Plus}
+                            label={"Create Store"}
+                            ariaLabel={"Create Store"}
+                        />
+                    </MABTemplate>
+                )}
+            </MobileActionBar>
         </>
-    )
+    );
 }
 
 function LeftButton({ onClick }: { onClick: () => void }) {
-    return <QuickActionButton ariaLabel={"Cancel"} icon={X} onClick={onClick} />
+    return <QuickActionButton ariaLabel={"Cancel"} icon={X} onClick={onClick} />;
 }

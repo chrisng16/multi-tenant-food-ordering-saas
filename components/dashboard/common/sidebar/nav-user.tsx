@@ -29,31 +29,17 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-import { Skeleton } from "@/components/ui/skeleton"
 import { authClient } from "@/lib/auth-client"
-import { useUIStore } from "@/stores/use-ui-store"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
+import { User } from "better-auth"
+import { redirect } from "next/navigation"
 
-export function NavUser() {
+export function NavUser({user}: {user:User}) {
   const { isMobile } = useSidebar()
 
-  const router = useRouter()
-  const { data, isPending } = authClient.useSession()
-  const { openAuthModal } = useUIStore()
-
-  if (isPending) {
-    return <NavUserSkeleton />
+  const handleSignout = async () => {
+      await authClient.signOut();
+      redirect("/")
   }
-
-  if (!data?.user) {
-    openAuthModal('sign-in')
-    router.push("/")
-    toast.info("You must be signed in to access the dashboard")
-    return null
-  }
-
-  const user = data.user
 
   return (
     <SidebarMenu>
@@ -113,7 +99,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
@@ -124,17 +110,3 @@ export function NavUser() {
   )
 }
 
-function NavUserSkeleton() {
-  return (
-    <div className="flex items-center gap-2 p-2 h-12">
-      {/* Avatar */}
-      <Skeleton className="size-8 rounded-lg" />
-
-      {/* Name + email */}
-      <div className="grid flex-1 text-left text-sm leading-tight gap-2">
-        <Skeleton className="h-3.5 w-28" />
-        <Skeleton className="h-3 w-40" />
-      </div>
-    </div>
-  )
-}

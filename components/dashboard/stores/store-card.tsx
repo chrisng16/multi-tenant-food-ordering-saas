@@ -2,16 +2,12 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Store } from "lucide-react"
+import { Store } from "@/db/schema"
+import { StoreIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface StoreCardProps {
-    store: {
-        id: string
-        name: string
-        slug: string
-        description?: string
-    }
+    store: Store
     navigatePath?: string
 }
 
@@ -32,7 +28,7 @@ export function StoreCard({ store, navigatePath }: StoreCardProps) {
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary/10 rounded-lg">
-                            <Store className="h-5 w-5 text-primary" />
+                            <StoreIcon className="h-5 w-5 text-primary" />
                         </div>
                         <div>
                             <CardTitle className="text-base md:text-lg">{store.name}</CardTitle>

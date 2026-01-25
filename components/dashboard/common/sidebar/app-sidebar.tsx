@@ -16,10 +16,10 @@ import {
 } from "@tabler/icons-react"
 import * as React from "react"
 
-import { NavDocuments } from "@/components/dashboard/common/nav-documents"
-import { NavMain } from "@/components/dashboard/common/nav-main"
-import { NavSecondary } from "@/components/dashboard/common/nav-secondary"
-import { NavUser } from "@/components/dashboard/common/nav-user"
+import { NavDocuments } from "@/components/dashboard/common/sidebar/nav-documents"
+import { NavMain } from "@/components/dashboard/common/sidebar/nav-main"
+import { NavSecondary } from "@/components/dashboard/common/sidebar/nav-secondary"
+import { NavUser } from "@/components/dashboard/common/sidebar/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +30,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { isPathActive } from "@/lib/utils"
+import { User } from "better-auth"
 import { usePathname } from "next/navigation"
 
 const data = {
@@ -114,9 +115,11 @@ const data = {
     },
   ],
 }
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  user: User
+}
 
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({user, ...props }: AppSidebarProps) {
   const pathname = usePathname()
 
   const withActive = <T extends { url: string }>(items: T[]) =>
@@ -148,7 +151,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={withActive(data.navSecondary)} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser />
+        <NavUser user={user}/>
       </SidebarFooter>
     </Sidebar>
   )

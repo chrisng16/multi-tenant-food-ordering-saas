@@ -1,10 +1,10 @@
 "use client"
 
-import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar"
 import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
+import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar/mobile-action-bar"
+import QuickActionButton from "@/components/dashboard/common/mobile-action-bar/quick-action-button"
 import { AddProductFormV2 } from "@/components/dashboard/products/add-product-form-v2"
 import { ProductCard } from "@/components/dashboard/products/product-card"
-import QuickActionButton from "@/components/dashboard/stores/quick-action-button"
 import { Button } from "@/components/ui/button"
 import { Plus, Save, X } from "lucide-react"
 import { use, useState } from "react"

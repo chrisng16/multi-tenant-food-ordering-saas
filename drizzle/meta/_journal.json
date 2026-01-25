@@ -15,6 +15,13 @@
       "when": 1768435642568,
       "tag": "0001_cold_aaron_stack",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769129344015,
+      "tag": "0002_public_red_wolf",
+      "breakpoints": true
     }
   ]
 }

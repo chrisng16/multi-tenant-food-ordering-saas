@@ -4,34 +4,41 @@ import { Button } from "@/components/ui/button"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
+import { Store } from "@/db/schema"
 import { StoreSchema } from "@/schemas/store"
-import { BarChart3, MoreHorizontal, MoreHorizontalIcon, Package, Save, ShoppingCart, Store, Zap } from "lucide-react"
+import { BarChart3, MoreHorizontal, MoreHorizontalIcon, Package, Save, ShoppingCart, StoreIcon, Zap } from "lucide-react"
 import Link from "next/link"
-import { MobileActionBar } from "../common/mobile-action-bar"
+import { useEffect, useState } from "react"
 import MABTemplate from "../common/mobile-action-bar/mab-template"
+import { MobileActionBar } from "../common/mobile-action-bar/mobile-action-bar"
+import QuickActionButton from "../common/mobile-action-bar/quick-action-button"
 import { WeekHours } from "./business-hours/time-utils"
 import StoreInfoEntry from "./create-modify-store/store-info-entry"
-import QuickActionButton from "./quick-action-button"
 
 interface EditStoreViewProps {
     hours: WeekHours
     setHours: (hours: WeekHours) => void
+    storeDetails: StoreSchema | undefined
     setStoreDetails: (details: StoreSchema) => void
-    store: {
-        id: string
-        name: string
-        slug: string
-        description?: string
-    }
+    onSubmit: () => void
+    isSubmitting: boolean
+    store: Store
 }
 
 export function EditStoreView({
     hours,
     setHours,
     store,
-    setStoreDetails
+    storeDetails,
+    setStoreDetails,
+    onSubmit,
+    isSubmitting
 }: EditStoreViewProps) {
+    const [isFormValid, setIsFormValid] = useState(false)
 
+    useEffect(() => {
+        console.log("Store details updated:", storeDetails)
+    }, [storeDetails])
 
     const handleSubmit = () => {
         // Handle form submission logic here
@@ -50,26 +57,43 @@ export function EditStoreView({
                 </div>
                 <div className="flex gap-2">
                     <Button size="sm" className="xl:hidden hidden sm:flex w-auto">
-                        <Store className="h-4 w-4" />
+                        <StoreIcon className="h-4 w-4" />
                         <span className="inline">View Store</span>
                     </Button>
-                    <QuickActions store={store} />
-                    <MiniQuickActions store={store} />
+                    <QuickActions storeId={store.id} />
+                    <MiniQuickActions storeId={store.id} />
                 </div>
             </div>
 
-            <StoreInfoEntry mode="edit" hours={hours} setHours={setHours} store={store} setStoreDetails={setStoreDetails} onSave={handleSubmit} onCancel={() => window.history.back()} />
+            <StoreInfoEntry
+                mode="edit"
+                hours={hours}
+                setHours={setHours}
+                store={store}
+                setStoreDetails={setStoreDetails}
+                onSave={onSubmit}
+                onCancel={() => window.history.back()}
+                isFormValid={isFormValid}
+                setFormValid={setIsFormValid}
+            />
 
             <MobileActionBar>
                 <MABTemplate rightButton={<ActionBarQuickActions store={store} />}>
-                    <QuickActionButton className="w-full" onClick={() => handleSubmit()} icon={Save} label={"Save"} ariaLabel={"Save Store"} />
+                    <QuickActionButton
+                        disabled={!isFormValid || isSubmitting}
+                        className="w-full"
+                        onClick={onSubmit}
+                        icon={Save}
+                        label={isSubmitting ? "Saving..." : "Save"}
+                        ariaLabel={"Save Store"}
+                    />
                 </MABTemplate>
-            </MobileActionBar >
+            </MobileActionBar>
         </>
     )
 }
 
-function QuickActions({ store }: { store: { id: string } }) {
+function QuickActions({ storeId }: { storeId: string }) {
     return (
         <div className="hidden xl:grid gap-2 grid-cols-4">
             <Button
@@ -78,7 +102,7 @@ function QuickActions({ store }: { store: { id: string } }) {
                 className="w-full"
                 asChild
             >
-                <Link href={`/dashboard/stores/${store.id}/products`}>
+                <Link href={`/dashboard/stores/${storeId}/products`}>
                     <Package className="h-4 w-4" />
                     <span className="inline">Manage Products</span>
                 </Link>
@@ -94,13 +118,13 @@ function QuickActions({ store }: { store: { id: string } }) {
             </Button>
 
             <Button size="sm" className="w-full">
-                <Store className="h-4 w-4" />
+                <StoreIcon className="h-4 w-4" />
                 <span className="inline">View Store</span>
             </Button>
         </div >)
 }
 
-export function MiniQuickActions({ store }: { store: { id: string } }) {
+export function MiniQuickActions({ storeId }: { storeId: string }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild className="xl:hidden hidden sm:flex">
@@ -112,25 +136,25 @@ export function MiniQuickActions({ store }: { store: { id: string } }) {
                 <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
                 <DropdownMenuGroup>
                     <DropdownMenuItem asChild className="flex sm:hidden">
-                        <Link href={`/dashboard/stores/${store.id}/analytics`}>
-                            <Store className="h-4 w-4" />
+                        <Link href={`/dashboard/stores/${storeId}/analytics`}>
+                            <StoreIcon className="h-4 w-4" />
                             <span className="inline">View Store</span>
                         </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/stores/${store.id}/products`}>
+                        <Link href={`/dashboard/stores/${storeId}/products`}>
                             <Package className="h-4 w-4" />
                             <span className="inline">Manage Products</span>
                         </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/stores/${store.id}/orders`}>
+                        <Link href={`/dashboard/stores/${storeId}/orders`}>
                             <ShoppingCart className="h-4 w-4" />
                             <span className="inline">Manage Orders</span>
                         </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/stores/${store.id}/analytics`}>
+                        <Link href={`/dashboard/stores/${storeId}/analytics`}>
                             <BarChart3 className="h-4 w-4" />
                             <span className="inline">View Analytics</span>
                         </Link>
@@ -157,7 +181,7 @@ export function ActionBarQuickActions({ store }: { store: { id: string } }) {
                     <DrawerClose asChild>
                         <Button variant="secondary" asChild>
                             <Link href={`/dashboard/stores/${store.id}/analytics`}>
-                                <Store className="h-4 w-4" />
+                                <StoreIcon className="h-4 w-4" />
                                 <span className="inline">View Store</span>
                             </Link>
                         </Button>
