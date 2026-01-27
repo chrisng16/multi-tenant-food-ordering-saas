@@ -1,18 +1,17 @@
 "use client"
 
-import { getStore } from "@/actions/store/get-store"
-import { updateStore } from "@/actions/store/update-store"; // You'll need this action
-import { WeekHours, defaultWeekHours } from "@/components/dashboard/stores/business-hours/time-utils"
-import { EditStoreView } from "@/components/dashboard/stores/edit-store-view"
-import { ClientActionError } from "@/lib/action/client-action-error"
-import { unwrapActionResult } from "@/lib/action/unwrap-action-result"
-import { StoreSchema } from "@/schemas/store"
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { notFound, useRouter } from "next/navigation"
-import { use, useEffect, useState } from "react"
-import { toast } from "sonner"
-import EditStoreSkeleton from "@/components/dashboard/stores/edit-store-skeleton"
+import { getStore } from "@/actions/store/get-store";
+import { updateStore } from "@/actions/store/update-store";
+import { DAY_ORDER, WeekHours } from "@/components/dashboard/stores/business-hours/time-utils";
+import EditStoreSkeleton from "@/components/dashboard/stores/edit-store-skeleton";
+import { EditStoreView } from "@/components/dashboard/stores/edit-store-view";
+import { ClientActionError } from "@/lib/action/client-action-error";
+import { unwrapActionResult } from "@/lib/action/unwrap-action-result";
+import { StoreSchema } from "@/schemas/store";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { notFound, useRouter } from "next/navigation";
+import { use, useMemo } from "react";
+import { toast } from "sonner";
 
 interface StorePageProps {
     params: Promise<{
@@ -30,26 +29,38 @@ export default function StorePage({ params }: StorePageProps) {
         queryFn: () => getStore(storeId)
     })
 
-    const [hours, setHours] = useState<WeekHours>(defaultWeekHours)
-    const [storeDetails, setStoreDetails] = useState<StoreSchema | undefined>()
+    const store = result?.ok ? result.data : null
 
-    useEffect(() => {
-        if (result?.ok && result.data) {
-            const store = result.data
-            setStoreDetails({
+    // Initialize form data from store
+    const initialFormData = useMemo(() => {
+        if (!store) return null
+
+        const weekHours: WeekHours = {} as WeekHours
+        for (const day of DAY_ORDER) {
+            const dayRows = store.weeklyRanges
+                .filter((r: any) => r.dayOfWeek === day)
+                .map((r: any) => ({ startMin: r.startMin, endMin: r.endMin }))
+            if (dayRows.length === 0) {
+                weekHours[day] = { status: "closed" }
+            } else {
+                weekHours[day] = { status: "ranges", ranges: dayRows }
+            }
+        }
+
+        return {
+            storeDetails: {
                 name: store.name,
                 slug: store.slug,
-                logoUrl: store.logoUrl || undefined,
-                description: store.description || undefined,
+                logoUrl: store.logoUrl || null,
+                description: store.description || null,
                 timezone: store.timezone,
-                phone: store.phone || undefined,
-                email: store.email || undefined,
-                address: store.address || undefined,
-            })
-            // Also set hours if they exist in the store data
-            // setHours(store.hours || defaultWeekHours)
+                phone: store.phone || null,
+                email: store.email || null,
+                address: store.address || null,
+            } as StoreSchema,
+            hours: weekHours
         }
-    }, [result])
+    }, [store])
 
     const { isPending, mutate } = useMutation({
         mutationFn: async ({
@@ -58,8 +69,9 @@ export default function StorePage({ params }: StorePageProps) {
         }: {
             storeDetails: StoreSchema
             hours: WeekHours
-        }) => unwrapActionResult(await updateStore(storeId, storeDetails)),
-        onSuccess: () => {
+        }) => unwrapActionResult(await updateStore(storeId, storeDetails, hours)),
+        onSuccess: (res) => {
+            console.log("Store updated:", res)
             toast.success("Store successfully updated")
             queryClient.invalidateQueries({ queryKey: ["store", storeId] })
             queryClient.invalidateQueries({ queryKey: ["stores"] })
@@ -78,33 +90,19 @@ export default function StorePage({ params }: StorePageProps) {
         },
     })
 
-    const handleSubmit = () => {
-        if (!storeDetails) {
-            toast.error("Store details are missing")
-            return
-        }
-        console.log("Submitting store details:", storeDetails, "Hours:", hours)
-        mutate({ storeDetails, hours })
-    }
-
-    const store = result?.ok ? result.data : null
-
     if (status === "pending") {
         return <EditStoreSkeleton />
     }
 
-    if (!result?.ok || !store) {
+    if (!result?.ok || !store || !initialFormData) {
         return notFound()
     }
 
     return (
         <EditStoreView
             store={store}
-            hours={hours}
-            setHours={setHours}
-            storeDetails={storeDetails}
-            setStoreDetails={setStoreDetails}
-            onSubmit={handleSubmit}
+            initialFormData={initialFormData}
+            onSubmit={mutate}
             isSubmitting={isPending}
         />
     )

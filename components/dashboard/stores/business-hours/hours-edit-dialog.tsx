@@ -34,10 +34,11 @@ type Draft = {
 
 type HoursEditDialogProps = {
     open: boolean;
-    onOpenChange: (open: boolean) => void;
+    onOpenChangeAction: (open: boolean) => void;
     initialSelectedDays: DayKey[];
     weekHours: WeekHours;
-    onSave: (next: WeekHours) => void;
+    onSaveAction: (next: WeekHours) => void;
+    setFormDirtyAction: (isDirty: boolean) => void;
 };
 
 function cloneDayHours(dh: DayHours): { mode: Mode; ranges: TimeRange[] } {
@@ -237,7 +238,7 @@ function validateDraft(draft: Draft): { ok: boolean; message?: string } {
 
 
 export function HoursEditDialog(props: HoursEditDialogProps) {
-    const { open, onOpenChange, initialSelectedDays, weekHours, onSave } = props;
+    const { open, onOpenChangeAction, initialSelectedDays, weekHours, onSaveAction, setFormDirtyAction } = props;
 
     const [draft, setDraft] = React.useState<Draft>(() => getInitialDraft(initialSelectedDays, weekHours));
     const [error, setError] = React.useState<string | null>(null);
@@ -320,12 +321,33 @@ export function HoursEditDialog(props: HoursEditDialogProps) {
         setError(null);
 
         const next = applyDraftToWeek(weekHours, draft);
-        onSave(next);
-        onOpenChange(false);
+
+
+        // Efficient, deterministic comparison of weekHours -> next.
+        // Compare status and normalized ranges per day (order from DAY_ORDER).
+        const isEqual = DAY_ORDER.every((day) => {
+            const a = weekHours[day];
+            const b = next[day];
+            if (a.status !== b.status) return false;
+            if (a.status === "ranges" && b.status === "ranges") {
+                const ar = normalizeAndMergeRanges(a.ranges);
+                const br = normalizeAndMergeRanges(b.ranges);
+                if (ar.length !== br.length) return false;
+                for (let i = 0; i < ar.length; i++) {
+                    if (ar[i].startMin !== br[i].startMin || ar[i].endMin !== br[i].endMin) return false;
+                }
+            }
+            return true;
+        });
+
+        setFormDirtyAction(!isEqual);
+
+        onSaveAction(next);
+        onOpenChangeAction(false);
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={onOpenChangeAction}>
             <DialogContent className="sm:max-w-xl">
                 <DialogHeader>
                     <DialogTitle>Select days &amp; time</DialogTitle>
@@ -447,7 +469,7 @@ export function HoursEditDialog(props: HoursEditDialogProps) {
                 )}
 
                 <DialogFooter className="mt-6">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChangeAction(false)}>
                         Cancel
                     </Button>
                     <Button type="button" onClick={handleSave} disabled={!validation.ok}>

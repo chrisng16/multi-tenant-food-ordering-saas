@@ -19,8 +19,9 @@ import {
 
 
 type BusinessHoursSelectorProps = {
-    value: WeekHours;
+    hours: WeekHours;
     onChangeAction: (next: WeekHours) => void;
+    setFormDirtyAction: (isDirty: boolean) => void;
     disabled?: boolean;
     className?: string;
 };
@@ -34,7 +35,7 @@ function daysSatSun(): DayKey[] {
 }
 
 export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
-    const { value, onChangeAction, disabled, className } = props;
+    const { hours, onChangeAction, setFormDirtyAction, disabled, className } = props;
 
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [initialSelectedDays, setInitialSelectedDays] = React.useState<DayKey[]>(["mon"]);
@@ -58,7 +59,7 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
                             <div className="text-sm">{DAY_LABELS[day]}</div>
                             <div className="flex items-center gap-1">
                                 <div className="text-sm text-muted-foreground">
-                                    {formatDayHoursForSelector(value, day)}
+                                    {formatDayHoursForSelector(hours, day)}
                                 </div>
                                 <Button
                                     type="button"
@@ -91,10 +92,11 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
 
             <HoursEditDialog
                 open={dialogOpen}
-                onOpenChange={setDialogOpen}
+                onOpenChangeAction={setDialogOpen}
                 initialSelectedDays={initialSelectedDays}
-                weekHours={value}
-                onSave={onChangeAction}
+                weekHours={hours}
+                onSaveAction={onChangeAction}
+                setFormDirtyAction={setFormDirtyAction}
             />
         </div>
     );

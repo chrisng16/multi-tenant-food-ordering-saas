@@ -227,8 +227,8 @@ export const products = pgTable("products", {
   storeId: uuid("store_id")
     .notNull()
     .references(() => stores.id, { onDelete: "cascade" }),
-  categoryId: uuid("category_id").references(() => categories.id, { 
-    onDelete: "set null" 
+  categoryId: uuid("category_id").references(() => categories.id, {
+    onDelete: "set null"
   }),
   sku: text("sku"),
   productNumber: text("product_number"), // e.g., "1", "2", "3"
@@ -476,8 +476,12 @@ export const orderItemOptionsRelations = relations(orderItemOptions, ({ one }) =
 // --------------------
 
 export type User = typeof users.$inferInsert;
+
 export type Store = typeof stores.$inferSelect;
 export type StoreInsert = typeof stores.$inferInsert;
+export type StoreWithWeeklyRanges = Store & {
+  weeklyRanges: StoreWeeklyRange[];
+};
 
 export type StoreWeeklyRange = typeof storeWeeklyRanges.$inferInsert;
 

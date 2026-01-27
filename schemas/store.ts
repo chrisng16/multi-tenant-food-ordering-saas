@@ -10,12 +10,12 @@ export const storeSchema = z.object({
         .refine((s) => !isReservedSlug(s), {
             message: "That slug is reserved. Please choose a different slug.",
         }),
-    description: z.string().max(500, "Description must be less than 500 characters").optional(),
+    description: z.string().max(500, "Description must be less than 500 characters").nullable(),
     timezone: z.string().min(3, "Timezone must be at least 3 characters").max(50, "Timezone must be less than 50 characters"),
-    phone: z.string().min(10, "Phone number must be at least 10 digits").max(15, "Phone number must be less than 15 digits").optional(),
-    email: z.email("Invalid email address").or(z.literal("")).optional(),
-    address: z.string().max(200, "Address must be less than 200 characters").optional(),
-    logoUrl: z.url("Logo URL must be a valid URL").optional(),
+    phone: z.string().min(10, "Phone number must be at least 10 digits").max(15, "Phone number must be less than 15 digits").nullable(),
+    email: z.email("Invalid email address").or(z.literal("")).nullable(),
+    address: z.string().max(200, "Address must be less than 200 characters").nullable(),
+    logoUrl: z.url("Logo URL must be a valid URL").nullable(),
 })
 
 export type StoreSchema = z.infer<typeof storeSchema>

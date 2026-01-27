@@ -23,12 +23,12 @@ import { toast } from "sonner";
 const defaultStoreDetails: StoreSchema = {
     name: "",
     slug: "",
-    logoUrl: undefined,
-    description: undefined,
+    logoUrl: null,
+    description: null,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles",
-    phone: undefined,
-    email: undefined,
-    address: undefined,
+    phone: null,
+    email: null,
+    address: null,
 }
 
 export default function StoresPage() {
@@ -112,6 +112,9 @@ export default function StoresPage() {
                     hours={hours}
                     setHours={setHours}
                     setStoreDetails={setStoreDetails}
+                    setFormDirty={(dirty: boolean) => setIsFormValid(!dirty)}
+                    isSaveDisabled={!isFormValid}
+                    isSubmitting={isPending}
                     onSave={handleSubmit}
                     onCancel={() => {
                         setIsCreatingStore(false);
