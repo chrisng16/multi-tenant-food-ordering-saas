@@ -61,12 +61,12 @@ const StoreForm = ({ mode, store, onChange, setFormValid }: StoreFormProps) => {
 
     useEffect(() => {
         setFormValid(isValid);
-        console.log(isValid)
     }, [isValid, setFormValid]);
 
     useEffect(() => {
         const subscription = watch((formValues) => {
             if (onChange) {
+                console.log(formValues)
                 onChange(formValues as StoreSchema);
             }
         });
@@ -178,9 +178,6 @@ const StoreForm = ({ mode, store, onChange, setFormValid }: StoreFormProps) => {
                     <FieldError>{errors.address?.message}</FieldError>
                 </Field>
             </FieldSet>
-
-            <span>{isValid ? "Form is valid" : "Form is invalid"}</span>
-            <pre>{!isValid && JSON.stringify(errors)}</pre>
         </form>
     );
 };

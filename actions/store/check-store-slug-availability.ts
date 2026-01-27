@@ -2,6 +2,7 @@
 
 import { db } from "@/db";
 import { stores } from "@/db/schema";
+import { isReservedSlug } from "@/lib/reserved-slugs";
 import { storeSchema } from "@/schemas/store";
 import { eq } from "drizzle-orm";
 
@@ -32,6 +33,18 @@ export async function checkStoreSlugAvailability(slug: string): Promise<CheckSlu
   }
 
   const normalized = parsed.data.slug;
+
+  // Reserved slugs are never available
+  if (isReservedSlug(normalized)) {
+    // Try to offer a helpful suggestion if possible
+    const suggested = `${normalized}-store`;
+    return {
+      available: false,
+      normalized,
+      suggestedSlug: suggested,
+      message: "That slug is reserved. Please choose a different slug.",
+    };
+  }
 
   try {
     // Check requested slug

@@ -14,7 +14,7 @@ export async function getAllStores(): Promise<ActionResult<Store[]>> {
 
     try {
         const rows = await db.select().from(stores).where(eq(stores.userId, userId));
-        if (!rows.length) return { ok: false, error: { code: "NOT_FOUND", message: "Store not found", status: 404 } };
+        if (!rows.length) return { ok: true, data:[] };
         return { ok: true, data: rows };
     } catch (err) {
         console.error("getStore error", err);

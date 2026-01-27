@@ -1,13 +1,16 @@
 "use client"
 
+import { getAllProducts } from "@/actions/store/get-all-products"
 import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
 import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar/mobile-action-bar"
 import QuickActionButton from "@/components/dashboard/common/mobile-action-bar/quick-action-button"
 import { AddProductFormV2 } from "@/components/dashboard/products/add-product-form-v2"
 import { ProductCard } from "@/components/dashboard/products/product-card"
 import { Button } from "@/components/ui/button"
+import { Product } from "@/db/schema"
+import { useQuery } from "@tanstack/react-query"
 import { Plus, Save, X } from "lucide-react"
-import { use, useState } from "react"
+import { use, useEffect, useState } from "react"
 
 // Mock data - in real app, this would come from API/database
 const mockProducts: Record<string, any[]> = {
@@ -216,13 +219,26 @@ interface StoreProductsPageProps {
 
 export default function StoreProductsPage({ params }: StoreProductsPageProps) {
     const { storeId } = use(params)
-    const [showAddForm, setShowAddForm] = useState(false)
-    const [products, setProducts] = useState(mockProducts)
+
+    const { status, data: result } = useQuery({
+        queryKey: ["products", storeId],
+        queryFn: () => getAllProducts(storeId)
+    })
+
+    const [showAddForm, setShowAddForm] = useState<boolean>(false)
+    const [products, setProducts] = useState<Product[]>([])
+
+    useEffect(() => {
+        if (result?.ok && result.data) {
+            const products = result.data
+            setProducts(products)
+        }
+    }, [result])
+
 
     const handleAddProduct = () => setShowAddForm(true)
     const handleProductAdded = (newProduct: any) => {
-        setProducts(prev => ({ ...prev, [storeId]: [...prev[storeId], { ...newProduct, id: Date.now().toString() }] }))
-        setShowAddForm(false)
+
     }
     const handleCancelAdd = () => setShowAddForm(false)
 
@@ -240,38 +256,36 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
                     </Button>
                 </div>
             )}
-            <div className=" pb-[var(--mobile-padding-bottom)] sm:pb-0">
-                {showAddForm ? (
-                    <AddProductFormV2
-                        onProductAdded={handleProductAdded}
-                        onCancel={handleCancelAdd}
-                    />
-                ) :
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                        {products[storeId].length > 0 ? (
-                            products[storeId].map((product) => (
+
+            {showAddForm ? (
+                <AddProductFormV2
+                    onProductAdded={handleProductAdded}
+                    onCancel={handleCancelAdd}
+                />
+            ) :
+                <>
+                    {products.length > 0 ? (
+                        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] sm:pb-0">
+                            {products.map((product) => (
                                 <ProductCard key={product.id} product={product} storeId={storeId} />
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center py-12">
-                                <div className="mx-auto h-12 w-12 text-muted-foreground">
-                                    <Plus className="h-full w-full" />
-                                </div>
-                                <h3 className="mt-4 text-base md:text-lg font-semibold">No products yet</h3>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex-1 min-h-0 pb-28 flex items-center justify-center">
+                            <div className="text-center py-12">
+                                <Plus className="mx-auto h-12 w-12 text-muted-foreground" />
+                                <h3 className="mt-4 text-base md:text-lg font-semibold">
+                                    No products yet
+                                </h3>
                                 <p className="mt-2 text-muted-foreground">
                                     Get started by adding your first product.
                                 </p>
-                                {!showAddForm && (
-                                    <Button onClick={handleAddProduct} className="mt-4">
-                                        <Plus className="size-4" />
-                                        Add Your First Product
-                                    </Button>
-                                )}
                             </div>
-                        )}
-                    </div>
-                }
-            </div>
+                        </div>
+                    )}
+                </>
+            }
+
             <MobileActionBar>
                 {showAddForm ?
                     <MABTemplate showRightButton={false} leftButton={<LeftButton onClick={() => setShowAddForm(false)} />}>

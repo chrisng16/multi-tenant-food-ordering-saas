@@ -24,7 +24,6 @@ const SignUpForm = () => {
     const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    const [passwordFocused, setPasswordFocused] = useState(false)
 
     const { closeAuthModal } = useUIStore()
 
@@ -120,8 +119,6 @@ const SignUpForm = () => {
                                 autoComplete="new-password"
                                 disabled={loading}
                                 {...register("password")}
-                                onFocus={() => setPasswordFocused(true)}
-                                onBlur={() => setPasswordFocused(false)}
                             />
                             <InputGroupButton
                                 type="button"
@@ -129,6 +126,7 @@ const SignUpForm = () => {
                                 size="sm"
                                 onClick={() => setShowPassword(prev => !prev)}
                                 aria-label={showPassword ? "Hide password" : "Show password"}
+                                tabIndex={-1}
                                 disabled={loading}
                             >
                                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -136,7 +134,7 @@ const SignUpForm = () => {
                         </InputGroup>
 
                         {/* Password Requirements */}
-                        {passwordFocused && password.length > 0 && (
+                        {password.length > 0 && !requirements.every(req => req.met) && (
                             <div className="mt-2 space-y-1.5 text-sm">
                                 {requirements.map((req, idx) => (
                                     <div
@@ -173,6 +171,7 @@ const SignUpForm = () => {
                                 size="sm"
                                 onClick={() => setShowConfirmPassword(prev => !prev)}
                                 aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                                tabIndex={-1}
                                 disabled={loading}
                             >
                                 {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}

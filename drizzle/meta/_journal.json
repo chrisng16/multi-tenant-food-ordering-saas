@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1768434461042,
-      "tag": "0000_cheerful_victor_mancha",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1768435642568,
-      "tag": "0001_cold_aaron_stack",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1769129344015,
-      "tag": "0002_public_red_wolf",
+      "when": 1769409445494,
+      "tag": "0000_icy_xavin",
       "breakpoints": true
     }
   ]

@@ -40,11 +40,6 @@ export function EditStoreView({
         console.log("Store details updated:", storeDetails)
     }, [storeDetails])
 
-    const handleSubmit = () => {
-        // Handle form submission logic here
-        console.log("Store details saved:", store);
-    }
-
     return (
 
         <>

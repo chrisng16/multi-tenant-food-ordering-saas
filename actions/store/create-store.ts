@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { Store, stores } from "@/db/schema";
 import { StoreSchema } from "@/schemas/store";
 import type { ActionResult } from "@/types/actions/action-result";
+import { checkStoreSlugAvailability } from "./check-store-slug-availability";
 import { setStoreHours } from "./set-store-hours";
 
 export async function createStore(storeData: StoreSchema, weekHours: WeekHours): Promise<ActionResult<Store>> {
@@ -15,6 +16,11 @@ export async function createStore(storeData: StoreSchema, weekHours: WeekHours):
     const { userId } = userRes.data;
 
     try {
+        // Ensure slug is available (and not reserved) before inserting
+        const slugCheck = await checkStoreSlugAvailability(storeData.slug);
+        if (!slugCheck.available) {
+            return { ok: false, error: { code: "VALIDATION", message: slugCheck.message || "Slug is unavailable", status: 400 } };
+        }
         // const [result] = await db.insert(stores).values({ ...storeData, userId }).returning();
         console.log("createStore storeData, weekHours", storeData, weekHours);
         const [newStore] = await db.insert(stores).values({ ...storeData, userId }).returning();

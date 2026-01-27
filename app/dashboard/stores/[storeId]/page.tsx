@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { notFound, useRouter } from "next/navigation"
 import { use, useEffect, useState } from "react"
 import { toast } from "sonner"
+import EditStoreSkeleton from "@/components/dashboard/stores/edit-store-skeleton"
 
 interface StorePageProps {
     params: Promise<{
@@ -89,7 +90,7 @@ export default function StorePage({ params }: StorePageProps) {
     const store = result?.ok ? result.data : null
 
     if (status === "pending") {
-        return <div>Loading...</div>
+        return <EditStoreSkeleton />
     }
 
     if (!result?.ok || !store) {

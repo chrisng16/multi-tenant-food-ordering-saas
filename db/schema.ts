@@ -201,16 +201,17 @@ export const storeDateOverridesFlat = pgTable(
 );
 
 // --------------------
-// Menu Items
+// Categories
 // --------------------
-export const menuItems = pgTable("menu_items", {
+export const categories = pgTable("categories", {
   id: uuid("id").defaultRandom().primaryKey(),
   storeId: uuid("store_id")
     .notNull()
     .references(() => stores.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
-  price: numeric("price").notNull(),
+  displayOrder: integer("display_order").default(0),
+  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -219,21 +220,69 @@ export const menuItems = pgTable("menu_items", {
 });
 
 // --------------------
-// Add-ons for Menu Items
+// Products
 // --------------------
-export const menuItemAddOns = pgTable("menu_item_addons", {
+export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
-  menuItemId: uuid("menu_item_id")
+  storeId: uuid("store_id")
     .notNull()
-    .references(() => menuItems.id, { onDelete: "cascade" }),
+    .references(() => stores.id, { onDelete: "cascade" }),
+  categoryId: uuid("category_id").references(() => categories.id, { 
+    onDelete: "set null" 
+  }),
+  sku: text("sku"),
+  productNumber: text("product_number"), // e.g., "1", "2", "3"
   name: text("name").notNull(),
-  price: numeric("price").notNull().default("0"),
-  required: boolean("required").default(false).notNull(), // required vs optional
+  description: text("description"),
+  price: numeric("price").notNull(), // base price
+  imageUrl: text("image_url"),
+  isAvailable: boolean("is_available").default(true).notNull(),
+  displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 // --------------------
-// Orders (customer orders)
+// Product Option Groups (e.g., "Size", "Extra Cheese")
+// --------------------
+export const productOptionGroups = pgTable("product_option_groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  productId: uuid("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // e.g., "Size", "Toppings"
+  required: boolean("required").default(false).notNull(),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// --------------------
+// Product Options (sub-options within groups)
+// --------------------
+export const productOptions = pgTable("product_options", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  optionGroupId: uuid("option_group_id")
+    .notNull()
+    .references(() => productOptionGroups.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // e.g., "Small (10\")", "Medium (12\")"
+  price: numeric("price").notNull().default("0"), // price modifier
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// --------------------
+// Orders
 // --------------------
 export const orders = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -250,62 +299,205 @@ export const orders = pgTable("orders", {
     .notNull(),
   totalPrice: numeric("total_price").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 // --------------------
-// Order Items (links orders to menu items + addons chosen)
+// Order Items
 // --------------------
 export const orderItems = pgTable("order_items", {
   id: uuid("id").defaultRandom().primaryKey(),
   orderId: uuid("order_id")
     .notNull()
     .references(() => orders.id, { onDelete: "cascade" }),
-  menuItemId: uuid("menu_item_id")
+  productId: uuid("product_id")
     .notNull()
-    .references(() => menuItems.id, { onDelete: "cascade" }),
-  quantity: numeric("quantity").notNull().default("1"),
+    .references(() => products.id, { onDelete: "cascade" }),
+  quantity: integer("quantity").notNull().default(1),
+  basePrice: numeric("base_price").notNull(), // product price at time of order
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const orderItemAddOns = pgTable("order_item_addons", {
+// --------------------
+// Order Item Options (tracks which options customer selected)
+// --------------------
+export const orderItemOptions = pgTable("order_item_options", {
   id: uuid("id").defaultRandom().primaryKey(),
   orderItemId: uuid("order_item_id")
     .notNull()
     .references(() => orderItems.id, { onDelete: "cascade" }),
-  addOnId: uuid("addon_id")
+  optionGroupId: uuid("option_group_id")
     .notNull()
-    .references(() => menuItemAddOns.id, { onDelete: "cascade" }),
+    .references(() => productOptionGroups.id, { onDelete: "cascade" }),
+  optionId: uuid("option_id")
+    .notNull()
+    .references(() => productOptions.id, { onDelete: "cascade" }),
+  optionName: text("option_name").notNull(), // snapshot for historical records
+  priceModifier: numeric("price_modifier").notNull(), // price at time of order
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// --------------------
+// RELATIONS
+// --------------------
 
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   accounts: many(accounts),
   stores: many(stores),
+  orders: many(orders),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
-  users: one(users, {
+  user: one(users, {
     fields: [sessions.userId],
     references: [users.id],
   }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
-  users: one(users, {
+  user: one(users, {
     fields: [accounts.userId],
     references: [users.id],
   }),
 }));
 
-export const storesRelations = relations(stores, ({ one }) => ({
+export const storesRelations = relations(stores, ({ one, many }) => ({
   owner: one(users, {
     fields: [stores.userId],
     references: [users.id],
   }),
+  weeklyRanges: many(storeWeeklyRanges),
+  dateOverrides: many(storeDateOverridesFlat),
+  categories: many(categories),
+  products: many(products),
+  orders: many(orders),
 }));
+
+export const storeWeeklyRangesRelations = relations(storeWeeklyRanges, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeWeeklyRanges.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export const storeDateOverridesFlatRelations = relations(storeDateOverridesFlat, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeDateOverridesFlat.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [categories.storeId],
+    references: [stores.id],
+  }),
+  products: many(products),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [products.storeId],
+    references: [stores.id],
+  }),
+  category: one(categories, {
+    fields: [products.categoryId],
+    references: [categories.id],
+  }),
+  optionGroups: many(productOptionGroups),
+  orderItems: many(orderItems),
+}));
+
+export const productOptionGroupsRelations = relations(
+  productOptionGroups,
+  ({ one, many }) => ({
+    product: one(products, {
+      fields: [productOptionGroups.productId],
+      references: [products.id],
+    }),
+    options: many(productOptions),
+    orderItemOptions: many(orderItemOptions),
+  })
+);
+
+export const productOptionsRelations = relations(productOptions, ({ one, many }) => ({
+  optionGroup: one(productOptionGroups, {
+    fields: [productOptions.optionGroupId],
+    references: [productOptionGroups.id],
+  }),
+  orderItemOptions: many(orderItemOptions),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [orders.storeId],
+    references: [stores.id],
+  }),
+  user: one(users, {
+    fields: [orders.userId],
+    references: [users.id],
+  }),
+  orderItems: many(orderItems),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one, many }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
+    references: [products.id],
+  }),
+  selectedOptions: many(orderItemOptions),
+}));
+
+export const orderItemOptionsRelations = relations(orderItemOptions, ({ one }) => ({
+  orderItem: one(orderItems, {
+    fields: [orderItemOptions.orderItemId],
+    references: [orderItems.id],
+  }),
+  optionGroup: one(productOptionGroups, {
+    fields: [orderItemOptions.optionGroupId],
+    references: [productOptionGroups.id],
+  }),
+  option: one(productOptions, {
+    fields: [orderItemOptions.optionId],
+    references: [productOptions.id],
+  }),
+}));
+
+// --------------------
+// TYPES
+// --------------------
 
 export type User = typeof users.$inferInsert;
 export type Store = typeof stores.$inferSelect;
 export type StoreInsert = typeof stores.$inferInsert;
+
 export type StoreWeeklyRange = typeof storeWeeklyRanges.$inferInsert;
+
+export type Category = typeof categories.$inferSelect;
+export type CategoryInsert = typeof categories.$inferInsert;
+
+export type Product = typeof products.$inferSelect;
+export type ProductInsert = typeof products.$inferInsert;
+
+export type ProductOptionGroup = typeof productOptionGroups.$inferSelect;
+export type ProductOptionGroupInsert = typeof productOptionGroups.$inferInsert;
+
+export type ProductOption = typeof productOptions.$inferSelect;
+export type ProductOptionInsert = typeof productOptions.$inferInsert;
+
+export type Order = typeof orders.$inferSelect;
+export type OrderInsert = typeof orders.$inferInsert;
+
+export type OrderItem = typeof orderItems.$inferSelect;
+export type OrderItemInsert = typeof orderItems.$inferInsert;
+
+export type OrderItemOption = typeof orderItemOptions.$inferSelect;
+export type OrderItemOptionInsert = typeof orderItemOptions.$inferInsert;

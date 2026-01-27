@@ -1,10 +1,9 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Store } from "@/db/schema"
-import { StoreIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { ExternalLink, StoreIcon } from "lucide-react"
+import Link from "next/link"
 
 interface StoreCardProps {
     store: Store
@@ -12,43 +11,37 @@ interface StoreCardProps {
 }
 
 export function StoreCard({ store, navigatePath }: StoreCardProps) {
-    const router = useRouter()
-
-    const handleClick = () => {
-        const path = navigatePath || `/dashboard/stores/${store.id}`
-        router.push(path)
-    }
+    const path = navigatePath || `/dashboard/stores/${store.id}`
 
     return (
-        <Card
-            className="cursor-pointer hover:shadow-md transition-all duration-200"
-            onClick={handleClick}
-        >
-            <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                            <StoreIcon className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-base md:text-lg">{store.name}</CardTitle>
-                            <CardDescription className="text-sm">
-                                {store.slug}.app.com
-                            </CardDescription>
+        <Link href={path} className="block group">
+            <Card className="h-full transition-all duration-200 hover:shadow-lg hover:border-primary/20">
+                <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <div className="p-2.5 bg-primary/10 rounded-lg transition-colors group-hover:bg-primary/15 shrink-0">
+                                <StoreIcon className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <CardTitle className="text-base md:text-lg truncate">
+                                    {store.name}
+                                </CardTitle>
+                                <CardDescription className="text-sm flex items-center gap-1.5 mt-1">
+                                    <span className="truncate">{store.slug}.app.com</span>
+                                    <ExternalLink className="h-3 w-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </CardDescription>
+                            </div>
                         </div>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                        Active
-                    </Badge>
-                </div>
-            </CardHeader>
-            <CardContent>
+                </CardHeader>
                 {store.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                        {store.description}
-                    </p>
+                    <CardContent>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                            {store.description}
+                        </p>
+                    </CardContent>
                 )}
-            </CardContent>
-        </Card>
+            </Card>
+        </Link>
     )
 }

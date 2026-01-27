@@ -13,12 +13,12 @@ const mockProducts = [
         category: "Pizza",
         image: "/api/placeholder/300/200",
         isAvailable: true,
-        subOptions: [
+        options: [
             {
                 id: "size",
                 name: "Size",
                 required: true,
-                options: [
+                subOptions: [
                     { id: "small", name: "Small (10\")", price: 0 },
                     { id: "medium", name: "Medium (12\")", price: 2 },
                     { id: "large", name: "Large (14\")", price: 4 }
@@ -28,7 +28,7 @@ const mockProducts = [
                 id: "extra_cheese",
                 name: "Extra Cheese",
                 required: false,
-                options: [
+                subOptions: [
                     { id: "extra_cheese", name: "Extra Cheese", price: 1.50 }
                 ]
             }
@@ -42,7 +42,7 @@ const mockProducts = [
         category: "Salads",
         image: "/api/placeholder/300/200",
         isAvailable: true,
-        subOptions: []
+        options: []
     },
     {
         id: "3",
@@ -52,12 +52,12 @@ const mockProducts = [
         category: "Burgers",
         image: "/api/placeholder/300/200",
         isAvailable: true,
-        subOptions: [
+        options: [
             {
                 id: "size",
                 name: "Size",
                 required: true,
-                options: [
+                subOptions: [
                     { id: "regular", name: "Regular", price: 0 },
                     { id: "large", name: "Large", price: 1.50 }
                 ]
@@ -72,7 +72,7 @@ const mockProducts = [
         category: "Sides",
         image: "/api/placeholder/300/200",
         isAvailable: true,
-        subOptions: []
+        options: []
     }
 ]
 
@@ -161,9 +161,9 @@ export default function ProductPage({ params }: ProductPageProps) {
                                 </div>
                                 <div>
                                     <h2 className="text-base md:text-lg font-semibold mb-4">Options</h2>
-                                    {product.subOptions.length > 0 ? (
+                                    {product.options.length > 0 ? (
                                         <div className="space-y-4">
-                                            {product.subOptions.map((option) => (
+                                            {product.options.map((option) => (
                                                 <div key={option.id} className="border rounded-lg p-4">
                                                     <div className="flex items-center justify-between mb-2">
                                                         <h3 className="font-medium">{option.name}</h3>
@@ -175,7 +175,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                                                         </span>
                                                     </div>
                                                     <div className="space-y-1">
-                                                        {option.options.map((opt) => (
+                                                        {option.subOptions.map((opt) => (
                                                             <div key={opt.id} className="flex justify-between text-sm">
                                                                 <span>{opt.name}</span>
                                                                 <span className="text-muted-foreground">

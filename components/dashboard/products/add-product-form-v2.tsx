@@ -117,7 +117,7 @@ export function AddProductFormV2({ onProductAdded, onCancel }: AddProductFormPro
     }, [errors])
 
     return (
-        <div className="w-full">
+        <div className="w-full pb-[var(--mobile-padding-bottom)] sm:pb-0">
             {/* Header */}
             <div className="mb-5">
                 <div className="flex items-start justify-between gap-4">

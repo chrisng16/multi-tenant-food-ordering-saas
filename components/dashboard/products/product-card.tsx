@@ -3,29 +3,12 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Product } from "@/db/schema"
 import { Edit, Package } from "lucide-react"
 import Link from "next/link"
 
 interface ProductCardProps {
-    product: {
-        id: string
-        name: string
-        description: string
-        price: number
-        category: string
-        image?: string
-        isAvailable: boolean
-        subOptions: Array<{
-            id: string
-            name: string
-            required: boolean
-            options: Array<{
-                id: string
-                name: string
-                price: number
-            }>
-        }>
-    }
+    product: Product
     storeId?: string
 }
 
@@ -41,7 +24,7 @@ export function ProductCard({ product, storeId }: ProductCardProps) {
                         <div>
                             <CardTitle className="text-base md:text-lg">{product.name}</CardTitle>
                             <CardDescription className="text-sm">
-                                ${product.price.toFixed(2)}
+                                ${product.price}
                             </CardDescription>
                         </div>
                     </div>
@@ -59,15 +42,6 @@ export function ProductCard({ product, storeId }: ProductCardProps) {
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                     {product.description}
                 </p>
-
-                <div className="flex items-center justify-between">
-                    <Badge variant="outline">{product.category}</Badge>
-                    {product.subOptions.length > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                            {product.subOptions.length} option{product.subOptions.length > 1 ? 's' : ''}
-                        </span>
-                    )}
-                </div>
             </CardContent>
         </Card>
     )

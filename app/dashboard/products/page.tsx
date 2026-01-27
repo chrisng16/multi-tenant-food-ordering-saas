@@ -22,7 +22,7 @@ export default function ProductsPage() {
 
                 {mockStores.length > 0 ? (
                     <div className="flex-1 min-h-0 overflow-y-auto pb-8 sm:pb-0">
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] sm:pb-0">
                             {mockStores.map((store) => (
                                 <StoreCard
                                     key={store.id}
