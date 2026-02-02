@@ -1,4 +1,4 @@
-import { getAllProducts } from "@/actions/store/get-all-products";
+import { getAllProducts } from "@/actions/product/get-all-products";
 import Storefront from "@/components/store/storefront";
 
 interface StorefrontPageProps {

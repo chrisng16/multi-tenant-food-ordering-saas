@@ -11,7 +11,7 @@ export default async function DashboardLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const sessionData = await auth.api.getSession({headers: await headers()})
+    const sessionData = await auth.api.getSession({ headers: await headers() })
 
     if (!sessionData?.user) redirect("/")
 

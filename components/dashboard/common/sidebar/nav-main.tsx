@@ -3,6 +3,7 @@
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -19,6 +20,7 @@ export function NavMain({
   const { setOpenMobile } = useSidebar()
   return (
     <SidebarGroup>
+      <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           {items.map((item) => (

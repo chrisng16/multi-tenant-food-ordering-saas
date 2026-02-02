@@ -8,8 +8,8 @@ import {
     WeekHours,
     defaultWeekHours,
 } from "@/components/dashboard/stores/business-hours/time-utils";
-import StoreInfoEntry from "@/components/dashboard/stores/create-modify-store/store-info-entry";
-import StoreCardDisplay from "@/components/dashboard/stores/store-card-display";
+import StoreInfoEntry from "@/components/dashboard/stores/create-edit-store/store-info-entry";
+import StoreCardDisplay from "@/components/dashboard/stores/store-card-display/store-card-display";
 import { Button } from "@/components/ui/button";
 import { ClientActionError } from "@/lib/action/client-action-error";
 import { unwrapActionResult } from "@/lib/action/unwrap-action-result";
@@ -35,6 +35,7 @@ export default function StoresPage() {
     const [isCreatingStore, setIsCreatingStore] = useState(false);
     const [hours, setHours] = useState<WeekHours>(defaultWeekHours);
     const [isFormValid, setIsFormValid] = useState(false);
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     const [storeDetails, setStoreDetails] = useState<StoreSchema>(defaultStoreDetails);
 
@@ -85,7 +86,7 @@ export default function StoresPage() {
 
     return (
         <>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 p-4 md:p-6 pb-0 md:pb-0 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-xl md:text-2xl font-bold tracking-tight">
                         My Stores
@@ -106,26 +107,40 @@ export default function StoresPage() {
                     </div>
                 )}
             </div>
-            {isCreatingStore ? (
-                <StoreInfoEntry
-                    mode="create"
-                    hours={hours}
-                    setHours={setHours}
-                    setStoreDetails={setStoreDetails}
-                    setFormDirty={(dirty: boolean) => setIsFormValid(!dirty)}
-                    isSaveDisabled={!isFormValid}
-                    isSubmitting={isPending}
-                    onSave={handleSubmit}
-                    onCancel={() => {
-                        setIsCreatingStore(false);
-                        setStoreDetails(defaultStoreDetails);
-                    }}
-                    isFormValid={isFormValid}
-                    setFormValid={setIsFormValid}
-                />
-            ) : (
-                <StoreCardDisplay />
-            )}
+            <div className="px-4 md:px-6">
+                {isCreatingStore ? (
+                    <StoreInfoEntry
+                        mode="create"
+                        hours={hours}
+                        setHours={setHours}
+                        setStoreDetails={setStoreDetails}
+                        setFormDirty={setIsFormDirty}
+                        setFormValid={setIsFormValid}
+                    />
+                ) : (
+                    <StoreCardDisplay />
+                )}
+            </div>
+
+            {isCreatingStore && <div className="sticky bottom-0 bg-background hidden sm:flex gap-3 sm:justify-end border-t p-4">
+                <Button
+                    type="submit"
+                    className="flex-1 sm:flex-none"
+                    onClick={handleSubmit}
+                    disabled={isPending || !isFormValid || !isFormDirty}
+                >
+                    <Save className="size-4" />
+                    {isPending ? "Saving..." : "Save Store"}
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => window.history.back()}
+                >
+                    Cancel
+                </Button>
+            </div>}
 
             <MobileActionBar>
                 {isCreatingStore ? (
@@ -139,7 +154,7 @@ export default function StoresPage() {
                         }
                     >
                         <QuickActionButton
-                            disabled={!isFormValid}
+                            disabled={!isFormValid || !isFormDirty || isPending}
                             className="w-full"
                             onClick={handleSubmit}
                             icon={Save}

@@ -3,8 +3,8 @@
 import { getStore } from "@/actions/store/get-store";
 import { updateStore } from "@/actions/store/update-store";
 import { DAY_ORDER, WeekHours } from "@/components/dashboard/stores/business-hours/time-utils";
-import EditStoreSkeleton from "@/components/dashboard/stores/edit-store-skeleton";
-import { EditStoreView } from "@/components/dashboard/stores/edit-store-view";
+import { EditStoreView } from "@/components/dashboard/stores/create-edit-store/edit-store-view";
+import EditStoreSkeleton from "@/components/dashboard/stores/store-card-display/edit-store-skeleton";
 import { ClientActionError } from "@/lib/action/client-action-error";
 import { unwrapActionResult } from "@/lib/action/unwrap-action-result";
 import { StoreSchema } from "@/schemas/store";

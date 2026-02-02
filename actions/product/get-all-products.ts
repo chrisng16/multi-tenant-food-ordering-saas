@@ -9,7 +9,7 @@ export async function getAllProducts(storeId: string): Promise<ActionResult<Prod
   if (!storeId) {
     return {
       ok: false,
-      error: { code: "VALIDATION", message: "Store ID is required", status: 400 },
+      error: { code: "UNAUTHORIZED", message: "Store ID is required", status: 401 },
     };
   }
 
@@ -17,7 +17,7 @@ export async function getAllProducts(storeId: string): Promise<ActionResult<Prod
     const rows = await db.select().from(products).where(eq(products.storeId, storeId));
     return { ok: true, data: rows };
   } catch (err) {
-    console.error("getAllProducts error", err);
+
     return {
       ok: false,
       error: { code: "INTERNAL", message: "Failed to fetch products", status: 500 },

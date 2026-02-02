@@ -20,7 +20,7 @@ export function MobileActionBar({
     return (
         <div
             className={cn(
-                "fixed inset-x-0 bottom-0 z-50 sm:hidden h-[var(--mobile-action-bar-height)] bg-background/50 backdrop-blur flex items-center justify-center",
+                "fixed inset-x-0 bottom-0 z-50 sm:hidden h-[var(--mobile-action-bar-height)] bg-linear-to-t from-background via-75% via-background/50 to-transparent flex items-center justify-center",
                 className
             )}
             style={{

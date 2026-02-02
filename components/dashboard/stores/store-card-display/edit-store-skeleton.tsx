@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 export function EditStoreSkeleton() {
     return (
         <>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-4 md:p-6 pb-0 md:pb-0">
                 <div>
                     <Skeleton className="h-6.5 w-40 mb-2" />
                     <Skeleton className="h-5.5 w-60" />
@@ -16,7 +16,7 @@ export function EditStoreSkeleton() {
                 </div>
             </div>
 
-            <div className="pb-[var(--mobile-padding-bottom)] sm:pb-0">
+            <div className="pb-[var(--mobile-padding-bottom)] sm:pb-0 px-4 md:px-6">
                 <div className="bg-card rounded-lg border p-6">
                     <div className="mb-4">
                         <Skeleton className="h-6 w-40 mb-2" />

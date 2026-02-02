@@ -2,13 +2,12 @@ import {
   boolean,
   check,
   integer,
-  numeric,
   pgEnum,
   pgTable,
   text,
   timestamp,
   unique,
-  uuid,
+  uuid
 } from "drizzle-orm/pg-core";
 
 import { relations, sql } from "drizzle-orm";
@@ -209,6 +208,7 @@ export const categories = pgTable("categories", {
     .notNull()
     .references(() => stores.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
+  slug: text("slug").notNull(),
   description: text("description"),
   displayOrder: integer("display_order").default(0),
   isActive: boolean("is_active").default(true).notNull(),
@@ -217,7 +217,10 @@ export const categories = pgTable("categories", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-});
+}, (table) => [
+  index("categories_slug_idx").on(table.slug),
+  unique("categories_store_id_slug_unique").on(table.storeId, table.slug),
+]);
 
 // --------------------
 // Products
@@ -227,14 +230,14 @@ export const products = pgTable("products", {
   storeId: uuid("store_id")
     .notNull()
     .references(() => stores.id, { onDelete: "cascade" }),
-  categoryId: uuid("category_id").references(() => categories.id, {
+  categoryId: uuid("category_id").notNull().references(() => categories.id, {
     onDelete: "set null"
   }),
   sku: text("sku"),
   productNumber: text("product_number"), // e.g., "1", "2", "3"
   name: text("name").notNull(),
   description: text("description"),
-  price: numeric("price").notNull(), // base price
+  price: integer("price").notNull(), // base price
   imageUrl: text("image_url"),
   isAvailable: boolean("is_available").default(true).notNull(),
   displayOrder: integer("display_order").default(0),
@@ -243,7 +246,9 @@ export const products = pgTable("products", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-});
+}, (table) => [
+  index("products_store_id_idx").on(table.storeId),
+]);
 
 // --------------------
 // Product Option Groups (e.g., "Size", "Extra Cheese")
@@ -272,7 +277,7 @@ export const productOptions = pgTable("product_options", {
     .notNull()
     .references(() => productOptionGroups.id, { onDelete: "cascade" }),
   name: text("name").notNull(), // e.g., "Small (10\")", "Medium (12\")"
-  price: numeric("price").notNull().default("0"), // price modifier
+  price: integer("price").notNull().default(0), // price modifier
   displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
@@ -297,7 +302,7 @@ export const orders = pgTable("orders", {
   })
     .default("pending")
     .notNull(),
-  totalPrice: numeric("total_price").notNull(),
+  totalPrice: integer("total_price").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -317,7 +322,7 @@ export const orderItems = pgTable("order_items", {
     .notNull()
     .references(() => products.id, { onDelete: "cascade" }),
   quantity: integer("quantity").notNull().default(1),
-  basePrice: numeric("base_price").notNull(), // product price at time of order
+  basePrice: integer("base_price").notNull(), // product price at time of order
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -336,7 +341,7 @@ export const orderItemOptions = pgTable("order_item_options", {
     .notNull()
     .references(() => productOptions.id, { onDelete: "cascade" }),
   optionName: text("option_name").notNull(), // snapshot for historical records
-  priceModifier: numeric("price_modifier").notNull(), // price at time of order
+  priceModifier: integer("price_modifier").notNull(), // price at time of order
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -490,6 +495,10 @@ export type CategoryInsert = typeof categories.$inferInsert;
 
 export type Product = typeof products.$inferSelect;
 export type ProductInsert = typeof products.$inferInsert;
+export type FullProduct = Product & {
+  category: Category;
+  optionGroups: (ProductOptionGroup & { options: ProductOption[] })[];
+};
 
 export type ProductOptionGroup = typeof productOptionGroups.$inferSelect;
 export type ProductOptionGroupInsert = typeof productOptionGroups.$inferInsert;

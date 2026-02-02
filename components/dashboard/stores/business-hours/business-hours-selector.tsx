@@ -6,7 +6,6 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 
 import { HoursEditDialog } from "@/components/dashboard/stores/business-hours/hours-edit-dialog";
 import type { DayKey, WeekHours } from "@/components/dashboard/stores/business-hours/time-utils";
@@ -15,6 +14,7 @@ import {
     DAY_ORDER,
     formatDayHoursForSelector,
 } from "@/components/dashboard/stores/business-hours/time-utils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 
@@ -46,13 +46,13 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
     };
 
     return (
-        <div className={cn("space-y-1", className)}>
-            <div className="space-y-2">
-                <h2 className="leading-none font-semibold">Business Hours</h2>
-                <p className="text-muted-foreground text-sm">Set the hours your store is open each day</p>
-            </div>
+        <Card className={className}>
+            <CardHeader>
+                <CardTitle className="leading-none font-semibold">Business Hours</CardTitle>
+                <CardDescription className="text-muted-foreground text-sm">Set the hours your store is open each day</CardDescription>
+            </CardHeader>
 
-            <div>
+            <CardContent>
                 {DAY_ORDER.map((day, idx) => (
                     <React.Fragment key={day}>
                         <div className="flex items-center justify-between py-2">
@@ -76,7 +76,7 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
                         {idx !== DAY_ORDER.length - 1 && <Separator />}
                     </React.Fragment>
                 ))}
-            </div>
+            </CardContent>
 
             <div className="flex flex-wrap items-center justify-center gap-2">
                 <Button type="button" variant="outline" disabled={disabled} onClick={() => openForDays(DAY_ORDER)}>
@@ -98,7 +98,7 @@ export function BusinessHoursSelector(props: BusinessHoursSelectorProps) {
                 onSaveAction={onChangeAction}
                 setFormDirtyAction={setFormDirtyAction}
             />
-        </div>
+        </Card>
     );
 }
 

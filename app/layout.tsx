@@ -2,12 +2,11 @@ import { ThemeProvider } from "@/components/common/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Inter, Work_Sans } from "next/font/google";
 import "./globals.css";
 import Providers from './providers';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const workSans = Work_Sans({
   subsets: ["latin"],
 });
 

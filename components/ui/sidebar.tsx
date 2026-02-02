@@ -318,6 +318,20 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   )
 }
 
+function SidebarCustom({ className, ...props }: React.ComponentProps<"main">) {
+  return (
+    <main
+      data-slot="sidebar-custom"
+      className={cn(
+        "bg-background relative flex w-full flex-1 flex-col overflow-y-hidden",
+        "md:m-2 md:mt-0 md:ml-0 md:rounded-xl md:rounded-r-none md:shadow-sm md:peer-data-[state=collapsed]:ml-2",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 function SidebarInput({
   className,
   ...props
@@ -700,8 +714,7 @@ function SidebarMenuSubButton({
 
 export {
   Sidebar,
-  SidebarContent,
-  SidebarFooter,
+  SidebarContent, SidebarCustom, SidebarFooter,
   SidebarGroup,
   SidebarGroupAction,
   SidebarGroupContent,

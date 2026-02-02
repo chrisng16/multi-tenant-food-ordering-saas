@@ -1,6 +1,6 @@
 "use client"
 
-import { StoreCard } from "@/components/dashboard/stores/store-card"
+import { StoreCard } from "@/components/dashboard/stores/store-card-display/store-card"
 import { Package } from "lucide-react"
 
 // Mock data - in real app, this would come from API/database

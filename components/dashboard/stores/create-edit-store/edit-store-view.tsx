@@ -8,11 +8,11 @@ import { StoreSchema } from "@/schemas/store"
 import { BarChart3, MoreHorizontal, MoreHorizontalIcon, Package, Save, ShoppingCart, StoreIcon, Zap } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
-import MABTemplate from "../common/mobile-action-bar/mab-template"
-import { MobileActionBar } from "../common/mobile-action-bar/mobile-action-bar"
-import QuickActionButton from "../common/mobile-action-bar/quick-action-button"
-import { WeekHours } from "./business-hours/time-utils"
-import StoreInfoEntry from "./create-modify-store/store-info-entry"
+import MABTemplate from "../../common/mobile-action-bar/mab-template"
+import { MobileActionBar } from "../../common/mobile-action-bar/mobile-action-bar"
+import QuickActionButton from "../../common/mobile-action-bar/quick-action-button"
+import { WeekHours } from "../business-hours/time-utils"
+import StoreInfoEntry from "./store-info-entry"
 
 interface EditStoreViewProps {
     store: Store
@@ -42,9 +42,9 @@ export function EditStoreView({
 
     return (
         <>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-4 md:p-6 pb-0 md:pb-0">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">{store.name}</h1>
+                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">Edit Store</h1>
                     <p className="text-sm md:text-base text-muted-foreground">
                         Edit your store settings and preferences
                     </p>
@@ -60,22 +60,39 @@ export function EditStoreView({
                     <MiniQuickActions storeId={store.id} />
                 </div>
             </div>
+            <div className="px-4 md:px-6">
+                <StoreInfoEntry
+                    mode="edit"
+                    store={store}
+                    hours={hours}
+                    setHours={setHours}
+                    setStoreDetails={setStoreDetails}
+                    setFormValid={setIsFormValid}
+                    setFormDirty={setIsFormDirty}
+                />
 
-            <StoreInfoEntry
-                mode="edit"
-                store={store}
-                hours={hours}
-                setHours={setHours}
-                setStoreDetails={setStoreDetails}
-                onSave={handleSubmit}
-                onCancel={() => window.history.back()}
-                isFormValid={isFormValid}
-                setFormValid={setIsFormValid}
-                setFormDirty={setIsFormDirty}
-                isSaveDisabled={isSaveDisabled}
-                isSubmitting={isSubmitting}
-            />
+            </div>
 
+
+            <div className="sticky bottom-0 bg-background hidden sm:flex gap-3 sm:justify-end border-t p-4">
+                <Button
+                    type="submit"
+                    className="flex-1 sm:flex-none"
+                    onClick={handleSubmit}
+                    disabled={isSaveDisabled}
+                >
+                    <Save className="size-4" />
+                    {isSubmitting ? "Saving..." : "Save Store"}
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => window.history.back()}
+                >
+                    Cancel
+                </Button>
+            </div>
             <MobileActionBar>
                 <MABTemplate rightButton={<ActionBarQuickActions store={store} />}>
                     <QuickActionButton

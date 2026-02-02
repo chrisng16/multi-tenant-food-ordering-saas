@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Product } from "@/db/schema"
+import { centsToDollars } from "@/lib/utils"
 import { Edit, Package } from "lucide-react"
 import Link from "next/link"
 
@@ -24,7 +25,7 @@ export function ProductCard({ product, storeId }: ProductCardProps) {
                         <div>
                             <CardTitle className="text-base md:text-lg">{product.name}</CardTitle>
                             <CardDescription className="text-sm">
-                                ${product.price}
+                                ${centsToDollars(product.price)}
                             </CardDescription>
                         </div>
                     </div>

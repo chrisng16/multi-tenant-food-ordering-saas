@@ -1,215 +1,17 @@
 "use client"
 
-import { getAllProducts } from "@/actions/store/get-all-products"
+import { addProduct } from "@/actions/product/add-product"
 import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
 import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar/mobile-action-bar"
 import QuickActionButton from "@/components/dashboard/common/mobile-action-bar/quick-action-button"
 import { AddProductFormV2 } from "@/components/dashboard/products/add-product-form-v2"
-import { ProductCard } from "@/components/dashboard/products/product-card"
+import ProductCardDisplay from "@/components/dashboard/products/product-card-display"
 import { Button } from "@/components/ui/button"
-import { Product } from "@/db/schema"
-import { useQuery } from "@tanstack/react-query"
+import { AddProductFormData } from "@/schemas/product"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, Save, X } from "lucide-react"
-import { use, useEffect, useState } from "react"
-
-// Mock data - in real app, this would come from API/database
-const mockProducts: Record<string, any[]> = {
-    "1": [
-        {
-            id: "1",
-            name: "Margherita Pizza",
-            description: "Classic pizza with tomato sauce, mozzarella, and fresh basil",
-            price: 12.99,
-            category: "Pizza",
-            image: "/api/placeholder/300/200",
-            isAvailable: true,
-            subOptions: [
-                {
-                    id: "size",
-                    name: "Size",
-                    required: true,
-                    options: [
-                        { id: "small", name: "Small (10\")", price: 0 },
-                        { id: "medium", name: "Medium (12\")", price: 2 },
-                        { id: "large", name: "Large (14\")", price: 4 }
-                    ]
-                },
-                {
-                    id: "extra_cheese",
-                    name: "Extra Cheese",
-                    required: false,
-                    options: [
-                        { id: "extra_cheese", name: "Extra Cheese", price: 1.5 }
-                    ]
-                }
-            ]
-        },
-        {
-            id: "2",
-            name: "Pepperoni Pizza",
-            description: "Classic pizza topped with mozzarella and spicy pepperoni",
-            price: 13.99,
-            category: "Pizza",
-            image: "/api/placeholder/300/200",
-            isAvailable: true,
-            subOptions: [
-                {
-                    id: "size",
-                    name: "Size",
-                    required: true,
-                    options: [
-                        { id: "small", name: "Small (10\")", price: 0 },
-                        { id: "medium", name: "Medium (12\")", price: 2 },
-                        { id: "large", name: "Large (14\")", price: 4 }
-                    ]
-                },
-                {
-                    id: "extra_toppings",
-                    name: "Extra Toppings",
-                    required: false,
-                    options: [
-                        { id: "extra_pepperoni", name: "Extra Pepperoni", price: 2 },
-                        { id: "mushrooms", name: "Mushrooms", price: 1 }
-                    ]
-                }
-            ]
-        },
-        {
-            id: "3",
-            name: "BBQ Chicken Pizza",
-            description: "BBQ sauce, grilled chicken, red onions, and mozzarella",
-            price: 14.99,
-            category: "Pizza",
-            image: "/api/placeholder/300/200",
-            isAvailable: true,
-            subOptions: [
-                {
-                    id: "size",
-                    name: "Size",
-                    required: true,
-                    options: [
-                        { id: "small", name: "Small (10\")", price: 0 },
-                        { id: "medium", name: "Medium (12\")", price: 2 },
-                        { id: "large", name: "Large (14\")", price: 4 }
-                    ]
-                }
-            ]
-        },
-        {
-            id: "4",
-            name: "Veggie Pizza",
-            description: "Bell peppers, onions, olives, mushrooms, and mozzarella",
-            price: 13.49,
-            category: "Pizza",
-            image: "/api/placeholder/300/200",
-            isAvailable: true,
-            subOptions: [
-                {
-                    id: "size",
-                    name: "Size",
-                    required: true,
-                    options: [
-                        { id: "small", name: "Small (10\")", price: 0 },
-                        { id: "medium", name: "Medium (12\")", price: 2 },
-                        { id: "large", name: "Large (14\")", price: 4 }
-                    ]
-                }
-            ]
-        },
-        {
-            id: "5",
-            name: "Caesar Salad",
-            description: "Crisp romaine lettuce with Caesar dressing, croutons, and parmesan",
-            price: 8.99,
-            category: "Salads",
-            image: "/api/placeholder/300/200",
-            isAvailable: true,
-            subOptions: [
-                {
-                    id: "add_protein",
-                    name: "Add Protein",
-                    required: false,
-                    options: [
-                        { id: "chicken", name: "Grilled Chicken", price: 3 },
-                        { id: "shrimp", name: "Shrimp", price: 4 }
-                    ]
-                }
-            ]
-        },
-    ],
-    "2": [
-        {
-            id: "6",
-            name: "Greek Salad",
-            description: "Tomatoes, cucumbers, olives, red onions, and feta cheese",
-            price: 9.49,
-            category: "Salads",
-            image: "/api/placeholder/300/200",
-            isAvailable: true,
-            subOptions: []
-        },
-        {
-            id: "7",
-            name: "Garlic Bread",
-            description: "Toasted bread with garlic butter and herbs",
-            price: 4.99,
-            category: "Sides",
-            image: "/api/placeholder/300/200",
-            isAvailable: true,
-            subOptions: [
-                {
-                    id: "add_cheese",
-                    name: "Add Cheese",
-                    required: false,
-                    options: [
-                        { id: "mozzarella", name: "Mozzarella Cheese", price: 1.5 }
-                    ]
-                }
-            ]
-        },
-        {
-            id: "8",
-            name: "Chicken Wings",
-            description: "Crispy wings tossed in your choice of sauce",
-            price: 11.99,
-            category: "Appetizers",
-            image: "/api/placeholder/300/200",
-            isAvailable: true,
-            subOptions: [
-                {
-                    id: "sauce",
-                    name: "Sauce",
-                    required: true,
-                    options: [
-                        { id: "buffalo", name: "Buffalo", price: 0 },
-                        { id: "bbq", name: "BBQ", price: 0 },
-                        { id: "garlic_parmesan", name: "Garlic Parmesan", price: 0 }
-                    ]
-                }
-            ]
-        },
-        {
-            id: "9",
-            name: "French Fries",
-            description: "Golden, crispy fries served with ketchup",
-            price: 4.49,
-            category: "Sides",
-            image: "/api/placeholder/300/200",
-            isAvailable: true,
-            subOptions: []
-        },
-        {
-            id: "10",
-            name: "Chocolate Lava Cake",
-            description: "Warm chocolate cake with a molten center",
-            price: 6.99,
-            category: "Desserts",
-            image: "/api/placeholder/300/200",
-            isAvailable: true,
-            subOptions: []
-        }
-    ]
-}
+import { use, useState } from "react"
+import { toast } from "sonner"
 
 interface StoreProductsPageProps {
     params: Promise<{
@@ -219,33 +21,45 @@ interface StoreProductsPageProps {
 
 export default function StoreProductsPage({ params }: StoreProductsPageProps) {
     const { storeId } = use(params)
-
-    const { status, data: result } = useQuery({
-        queryKey: ["products", storeId],
-        queryFn: () => getAllProducts(storeId)
-    })
-
     const [showAddForm, setShowAddForm] = useState<boolean>(false)
-    const [products, setProducts] = useState<Product[]>([])
+    const [newProduct, setNewProduct] = useState<AddProductFormData | null>(null)
 
-    useEffect(() => {
-        if (result?.ok && result.data) {
-            const products = result.data
-            setProducts(products)
-        }
-    }, [result])
-
-
+    const queryClient = useQueryClient();
     const handleAddProduct = () => setShowAddForm(true)
-    const handleProductAdded = (newProduct: any) => {
+    const { isPending, mutateAsync } = useMutation({
+        mutationFn: (newProduct: AddProductFormData) => addProduct(storeId, newProduct),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products', storeId] }),
+    });
 
+    const handleSubmit = () => {
+        console.log("Product added:", newProduct)
+
+        if (newProduct) {
+            toast.promise(
+                mutateAsync(newProduct),
+                {
+                    loading: 'Adding product...',
+                    success: (data) => {
+                        console.log("Product added successfully:", data)
+                        setShowAddForm(false)
+                        setNewProduct(null)
+                        return 'Product added successfully!'
+                    },
+                    error: (error) => {
+                        console.error("Error adding product:", error)
+                        return 'Failed to add product. Please try again.'
+                    }
+                }
+            )
+        }
     }
+
     const handleCancelAdd = () => setShowAddForm(false)
 
     return (
         <>
             {!showAddForm && (
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-4 md:p-6 pb-0 md:pb-0">
                     <div>
                         <h1 className="text-xl md:text-2xl font-bold tracking-tight">Products</h1>
                         <p className="text-muted-foreground">Manage your store's products and menu items</p>
@@ -254,42 +68,45 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
                         <Plus className="size-4" />
                         Add Product
                     </Button>
-                </div>
-            )}
-
-            {showAddForm ? (
-                <AddProductFormV2
-                    onProductAdded={handleProductAdded}
-                    onCancel={handleCancelAdd}
-                />
-            ) :
-                <>
-                    {products.length > 0 ? (
-                        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] sm:pb-0">
-                            {products.map((product) => (
-                                <ProductCard key={product.id} product={product} storeId={storeId} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="flex-1 min-h-0 pb-28 flex items-center justify-center">
-                            <div className="text-center py-12">
-                                <Plus className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <h3 className="mt-4 text-base md:text-lg font-semibold">
-                                    No products yet
-                                </h3>
-                                <p className="mt-2 text-muted-foreground">
-                                    Get started by adding your first product.
-                                </p>
-                            </div>
-                        </div>
-                    )}
-                </>
+                </div >
+            )
             }
+            <div className="px-4 md:px-6">
+                {showAddForm ? (
+                    <AddProductFormV2
+                        onChange={setNewProduct}
+                        onCancel={handleCancelAdd}
+                        onSubmit={handleSubmit}
+                    />
+                ) :
+                    <ProductCardDisplay storeId={storeId} />
+                }
+            </div>
+
+            {showAddForm && <div className="sticky bottom-0 bg-background hidden sm:flex gap-3 sm:justify-end border-t p-4">
+                <Button
+                    type="submit"
+                    className="flex-1 sm:flex-none"
+                    onClick={handleSubmit}
+                    disabled={isPending}
+                >
+                    <Save className="size-4" />
+                    {isPending ? "Saving..." : "Save Store"}
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => window.history.back()}
+                >
+                    Cancel
+                </Button>
+            </div>}
 
             <MobileActionBar>
                 {showAddForm ?
                     <MABTemplate showRightButton={false} leftButton={<LeftButton onClick={() => setShowAddForm(false)} />}>
-                        <QuickActionButton className="w-full" onClick={() => setShowAddForm(true)} icon={Save} label={"Save Product"} ariaLabel={"Create Product"} />
+                        <QuickActionButton className="w-full" onClick={handleSubmit} icon={Save} label={"Save Product"} ariaLabel={"Create Product"} />
                     </MABTemplate> :
                     <MABTemplate showRightButton={false} showLeftButton={false}>
                         <QuickActionButton className="w-full" onClick={() => setShowAddForm(true)} label={"Add Product"} ariaLabel={"Add Product"} icon={Plus} />

@@ -7,46 +7,20 @@ import { Input } from "@/components/ui/input"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { AddProductFormData, addProductSchema, PRESET_CATEGORIES } from "@/schemas/product"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ChevronDown, ChevronUp, Info, Plus, Save, Trash2, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useFieldArray, useForm } from "react-hook-form"
-import { z } from "zod"
-
-const PRESET_CATEGORIES = ["Pizza", "Pasta", "Salads", "Beverages", "Desserts", "Appetizers"]
-
-// Validation schema
-const optionSchema = z.object({
-    id: z.string().min(1, "Option ID is required"),
-    name: z.string().min(1, "Option name is required"),
-    price: z.number().min(0, "Price must be 0 or greater"),
-})
-
-const subOptionSchema = z.object({
-    id: z.string().min(1, "Sub-option ID is required"),
-    name: z.string().min(1, "Sub-option name is required"),
-    required: z.boolean(),
-    options: z.array(optionSchema).min(1, "At least one option is required"),
-})
-
-const addProductSchema = z.object({
-    name: z.string().min(1, "Product name is required").min(3, "Name must be at least 3 characters"),
-    description: z.string().min(1, "Description is required").min(10, "Description must be at least 10 characters"),
-    price: z.number().min(0.01, "Price must be greater than 0"),
-    category: z.string().min(1, "Category is required"),
-    image: z.url("Please enter a valid image URL").optional().or(z.literal("")),
-    isAvailable: z.boolean(),
-    subOptions: z.array(subOptionSchema).optional(),
-})
-
-type AddProductFormData = z.infer<typeof addProductSchema>
 
 interface AddProductFormProps {
-    onProductAdded: (product: AddProductFormData) => void
+    onChange: (product: AddProductFormData) => void
     onCancel: () => void
+    onSubmit: () => void
 }
 
-export function AddProductFormV2({ onProductAdded, onCancel }: AddProductFormProps) {
+
+export function AddProductFormV2({ onCancel, onChange, onSubmit }: AddProductFormProps) {
     const form = useForm<AddProductFormData>({
         resolver: zodResolver(addProductSchema),
         defaultValues: {
@@ -54,7 +28,7 @@ export function AddProductFormV2({ onProductAdded, onCancel }: AddProductFormPro
             description: "",
             price: 0,
             category: "",
-            image: "",
+            imageUrl: "",
             isAvailable: true,
             subOptions: [],
         },
@@ -63,7 +37,6 @@ export function AddProductFormV2({ onProductAdded, onCancel }: AddProductFormPro
 
     const {
         register,
-        handleSubmit,
         control,
         formState: { errors, isSubmitting, isDirty },
         setValue,
@@ -76,17 +49,34 @@ export function AddProductFormV2({ onProductAdded, onCancel }: AddProductFormPro
     })
 
     const [openOptionId, setOpenOptionId] = useState<string | null>(null)
+    const prevSubOptionsLengthRef = useMemo(() => ({ current: subOptionsField.fields.length }), [])
 
     // Open newly-added option automatically
     useEffect(() => {
-        const fields = subOptionsField.fields
-        if (fields.length > 0) setOpenOptionId(fields[fields.length - 1].id)
+        const currentLength = subOptionsField.fields.length
+        const prevLength = prevSubOptionsLengthRef.current
+
+        if (currentLength > prevLength) {
+            const newField = subOptionsField.fields[currentLength - 1]
+            setOpenOptionId(newField.id)
+        }
+
+        prevSubOptionsLengthRef.current = currentLength
 
     }, [subOptionsField.fields.length])
 
-    const onSubmit = (data: AddProductFormData) => {
-        onProductAdded(data)
-    }
+    // Notify parent whenever form values change
+    useEffect(() => {
+
+        const subscription: any = watch((value) => {
+            onChange(value as AddProductFormData)
+        })
+
+        return () => {
+            if (typeof subscription === "function") subscription()
+            else if (subscription?.unsubscribe) subscription.unsubscribe()
+        }
+    }, [watch, onChange])
 
     const handleAddSubOption = () => {
         subOptionsField.append({
@@ -111,35 +101,26 @@ export function AddProductFormV2({ onProductAdded, onCancel }: AddProductFormPro
         if (e?.description) count++
         if (e?.price) count++
         if (e?.category) count++
-        if (e?.image) count++
+        if (e?.imageUrl) count++
         if (e?.subOptions) count++
         return count
     }, [errors])
 
     return (
-        <div className="w-full pb-[var(--mobile-padding-bottom)] sm:pb-0">
+        <div className='pb-[var(--mobile-padding-bottom)] sm:pb-0 space-y-4 md:space-y-6'>
             {/* Header */}
-            <div className="mb-5">
-                <div className="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 className="text-xl font-semibold leading-tight">Add New Product</h2>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            Create a new product for your menu. Use Options for sizes, add-ons, or variations.
-                        </p>
-                    </div>
 
-                    {/* Small status hint */}
-                    <div className="hidden sm:flex flex-col items-end">
-                        {errorCount > 0 ? (
-                            <span className="text-sm text-destructive">Fix {errorCount} issue{errorCount > 1 ? "s" : ""}</span>
-                        ) : (
-                            <span className="text-sm text-muted-foreground">{isDirty ? "Unsaved changes" : " "}</span>
-                        )}
-                    </div>
+            <div className="flex items-start justify-between gap-4 pt-4 md:pt-6">
+                <div>
+                    <h2 className="text-xl font-semibold leading-tight">Add New Product</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Create a new product for your menu. Use Options for sizes, add-ons, or variations.
+                    </p>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+            <form className="space-y-6">
                 {/* Main panel */}
                 <div className="rounded-xl border bg-card">
                     <div className="p-5 sm:p-6 space-y-6">
@@ -212,8 +193,8 @@ export function AddProductFormV2({ onProductAdded, onCancel }: AddProductFormPro
                                 <Field>
                                     <FieldLabel>Image URL (Optional)</FieldLabel>
                                     <FieldContent>
-                                        <Input placeholder="https://example.com/image.jpg" {...register("image")} />
-                                        <FieldError>{errors.image?.message as unknown as string}</FieldError>
+                                        <Input placeholder="https://example.com/imageUrl.jpg" {...register("imageUrl")} />
+                                        <FieldError>{errors.imageUrl?.message as unknown as string}</FieldError>
                                     </FieldContent>
                                 </Field>
 
@@ -347,7 +328,7 @@ export function AddProductFormV2({ onProductAdded, onCancel }: AddProductFormPro
                         </div>
 
                         <div className="flex gap-3 sm:justify-end">
-                            <Button type="submit" disabled={isSubmitting} className="flex-1 sm:flex-none">
+                            <Button type="button" disabled={isSubmitting} className="flex-1 sm:flex-none" onClick={() => onSubmit()}>
                                 <Save className="size-4" /> Save Product
                             </Button>
                             <Button type="button" variant="outline" onClick={onCancel} className="flex-1 sm:flex-none">
@@ -459,7 +440,7 @@ function SubOptionItems({
     })
 
     return (
-        <div className="space-y-3 pl-4 border-l-2 border-muted">
+        <div className="space-y-3 pl-4 border-l-2 border-muted pb-2">
             <div className="flex items-center justify-between">
                 <div className="text-sm font-medium">Option Items</div>
                 <Button type="button" variant="outline" size="sm" onClick={() => optionsField.append({ id: "", name: "", price: 0 })}>
