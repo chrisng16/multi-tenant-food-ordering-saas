@@ -21,7 +21,7 @@ export const addProductSchema = z.object({
     description: z.string().nullable().or(z.literal("")),
     price: z.number().min(0.01, "Price must be greater than 0"),
     category: z.string().min(1, "Category is required"),
-    imageUrl: z.url("Please enter a valid image URL").nullable().or(z.literal("")),
+    images: z.array(z.string().url("Please enter a valid image URL")).nullable(),
     isAvailable: z.boolean(),
     subOptions: z.array(subOptionSchema).nullable(),
 })

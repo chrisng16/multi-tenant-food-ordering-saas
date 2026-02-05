@@ -4,8 +4,8 @@ import { addProduct } from "@/actions/product/add-product"
 import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
 import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar/mobile-action-bar"
 import QuickActionButton from "@/components/dashboard/common/mobile-action-bar/quick-action-button"
-import { AddProductFormV2 } from "@/components/dashboard/products/add-product-form-v2"
 import ProductCardDisplay from "@/components/dashboard/products/product-card-display"
+import { ProductForm } from "@/components/dashboard/products/product-form"
 import { Button } from "@/components/ui/button"
 import { AddProductFormData } from "@/schemas/product"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -71,17 +71,15 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
                 </div >
             )
             }
-            <div className="px-4 md:px-6">
-                {showAddForm ? (
-                    <AddProductFormV2
-                        onChange={setNewProduct}
-                        onCancel={handleCancelAdd}
-                        onSubmit={handleSubmit}
-                    />
-                ) :
-                    <ProductCardDisplay storeId={storeId} />
-                }
-            </div>
+
+            {showAddForm ? (
+                <ProductForm
+                    mode="create"
+                    onChange={setNewProduct}
+                />
+            ) :
+                <ProductCardDisplay storeId={storeId} />
+            }
 
             {showAddForm && <div className="sticky bottom-0 bg-background hidden sm:flex gap-3 sm:justify-end border-t p-4">
                 <Button
@@ -91,13 +89,13 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
                     disabled={isPending}
                 >
                     <Save className="size-4" />
-                    {isPending ? "Saving..." : "Save Store"}
+                    {isPending ? "Saving..." : "Save Product"}
                 </Button>
                 <Button
                     type="button"
                     variant="outline"
                     className="flex-1 sm:flex-none"
-                    onClick={() => window.history.back()}
+                    onClick={() => setShowAddForm(false)}
                 >
                     Cancel
                 </Button>

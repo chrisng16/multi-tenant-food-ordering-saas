@@ -25,7 +25,7 @@ export default function ProductCardDisplay({ storeId }: { storeId: string }) {
 
     if (status === "pending") {
         return (
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] sm:pb-0">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] px-4 md:px-6 sm:pb-0">
                 {Array.from({ length: 6 }).map((_, i) => (
                     <ProductCardSkeleton key={i} />
                 ))}
@@ -38,7 +38,7 @@ export default function ProductCardDisplay({ storeId }: { storeId: string }) {
 
 
     return (products.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] sm:pb-4 md:pb-6">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 pb-[var(--mobile-padding-bottom)] px-4 md:px-6">
             {products.map((product) => (
                 <ProductCard key={product.id} product={product} storeId={storeId} />
             ))}

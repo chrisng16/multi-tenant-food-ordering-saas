@@ -238,7 +238,7 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   description: text("description"),
   price: integer("price").notNull(), // base price
-  imageUrl: text("image_url"),
+  images: text("images").array(),
   isAvailable: boolean("is_available").default(true).notNull(),
   displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),

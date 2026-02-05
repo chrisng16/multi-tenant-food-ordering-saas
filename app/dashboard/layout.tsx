@@ -2,21 +2,25 @@ import { DashboardHeader } from '@/components/dashboard/common/dashboard-header/
 import { AppSidebar } from '@/components/dashboard/common/sidebar/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import React from 'react';
+
 
 export default async function DashboardLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const sessionData = await auth.api.getSession({ headers: await headers() })
+    const cookieStore = await cookies()
+    const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
 
+    const sessionData = await auth.api.getSession({ headers: await headers() })
     if (!sessionData?.user) redirect("/")
 
     return (
         <SidebarProvider
+            defaultOpen={defaultOpen}
             style={
                 {
                     "--sidebar-width": "calc(var(--spacing) * 60)",
