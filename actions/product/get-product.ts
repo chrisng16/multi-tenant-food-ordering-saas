@@ -15,7 +15,8 @@ export async function getProduct(productId: string): Promise<ActionResult<FullPr
                     with: {
                         options: true
                     }
-                }
+                },
+                uploadedImages: true,
             }
         });
 
@@ -28,6 +29,7 @@ export async function getProduct(productId: string): Promise<ActionResult<FullPr
 
         return { ok: true, data: product };
     } catch (err) {
+        console.error("Error fetching product:", err);
         return {
             ok: false,
             error: { code: "INTERNAL", message: "Failed to fetch product", status: 500 },

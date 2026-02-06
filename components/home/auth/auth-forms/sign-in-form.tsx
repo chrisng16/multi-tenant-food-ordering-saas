@@ -22,8 +22,8 @@ import {
     InputGroupButton,
     InputGroupInput,
 } from "@/components/ui/input-group"
-import { authClient } from "@/lib/auth-client"
-import { handleAuthError } from "@/lib/auth-errors-handler"
+import { authClient } from "@/lib/auth/auth-client"
+import { handleAuthError } from "@/lib/auth/auth-errors-handler"
 import { SignInFormData, signInSchema } from "@/schemas/auth"
 
 const SignInForm = () => {

@@ -1,7 +1,7 @@
 import { DashboardHeader } from '@/components/dashboard/common/dashboard-header/dashboard-header';
 import { AppSidebar } from '@/components/dashboard/common/sidebar/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/auth/auth';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import React from 'react';

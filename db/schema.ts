@@ -7,7 +7,8 @@ import {
   text,
   timestamp,
   unique,
-  uuid
+  uuid,
+  varchar
 } from "drizzle-orm/pg-core";
 
 import { relations, sql } from "drizzle-orm";
@@ -238,7 +239,6 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   description: text("description"),
   price: integer("price").notNull(), // base price
-  images: text("images").array(),
   isAvailable: boolean("is_available").default(true).notNull(),
   displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -248,6 +248,31 @@ export const products = pgTable("products", {
     .notNull(),
 }, (table) => [
   index("products_store_id_idx").on(table.storeId),
+]);
+
+export const imageTagEnum = pgEnum("image_tag", ["logo", "product", "banner", "profile"])
+
+export const images = pgTable("images", {
+  id: uuid("id")
+    .defaultRandom()
+    .primaryKey(),
+  storeId: uuid("store_id")
+    .notNull()
+    .references(() => stores.id, { onDelete: "cascade" }),
+  productId: uuid("product_id")
+    .references(() => products.id, { onDelete: "cascade" }),
+  tag: imageTagEnum("tag").notNull(),
+  filename: varchar("filename", { length: 255 }).notNull(),
+  url: text("url").notNull(), // CloudFront URL
+  key: text("key").notNull(), // S3 key for deletion
+  size: integer("size").notNull(), // File size in bytes
+  mimeType: varchar("mime_type", { length: 50 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("images_store_tag_idx").on(table.storeId, table.tag),
+  index("images_store_product_idx").on(table.storeId, table.productId),
+  index("images_key_idx").on(table.key),
 ]);
 
 // --------------------
@@ -413,8 +438,20 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     fields: [products.categoryId],
     references: [categories.id],
   }),
+  uploadedImages: many(images),
   optionGroups: many(productOptionGroups),
   orderItems: many(orderItems),
+}));
+
+export const imagesRelations = relations(images, ({ one }) => ({
+  store: one(stores, {
+    fields: [images.storeId],
+    references: [stores.id],
+  }),
+  product: one(products, {
+    fields: [images.productId],
+    references: [products.id],
+  }),
 }));
 
 export const productOptionGroupsRelations = relations(
@@ -493,11 +530,16 @@ export type StoreWeeklyRange = typeof storeWeeklyRanges.$inferInsert;
 export type Category = typeof categories.$inferSelect;
 export type CategoryInsert = typeof categories.$inferInsert;
 
+export type Image = typeof images.$inferSelect
+export type NewImage = typeof images.$inferInsert
+
 export type Product = typeof products.$inferSelect;
 export type ProductInsert = typeof products.$inferInsert;
 export type FullProduct = Product & {
   category: Category;
   optionGroups: (ProductOptionGroup & { options: ProductOption[] })[];
+} & {
+  uploadedImages: Image[];
 };
 
 export type ProductOptionGroup = typeof productOptionGroups.$inferSelect;

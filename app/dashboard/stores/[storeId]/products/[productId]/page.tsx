@@ -1,13 +1,16 @@
 'use client';
 
 import { getProduct } from '@/actions/product/get-product';
+import { updateProduct } from '@/actions/product/update-product';
+import { ImageUploadRef } from '@/components/dashboard/products/image-upload/image-upload';
 import { ProductForm } from '@/components/dashboard/products/product-form';
 import { Button } from '@/components/ui/button';
 import { AddProductFormData } from '@/schemas/product';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 interface EditProductPageProps {
     params: Promise<{
@@ -16,15 +19,18 @@ interface EditProductPageProps {
     }>
 }
 
-
 export default function EditProductPage({ params }: EditProductPageProps) {
     const { storeId, productId } = use(params);
     const router = useRouter();
 
     const [product, setProduct] = useState<AddProductFormData>();
     const [isDirty, setIsDirty] = useState<boolean>(false);
+    const [isUploadingImages, setIsUploadingImages] = useState(false);
 
-    const [imagePreview, setImagePreview] = useState<string[]>([]);
+    // Ref to access ImageUpload's upload method
+    const imageUploadRef = useRef<ImageUploadRef>(null);
+
+    const queryClient = useQueryClient();
 
     const { status, data: result } = useQuery({
         queryKey: ['product', productId],
@@ -33,10 +39,20 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     })
 
     const { isPending, mutate } = useMutation({
-        mutationFn: async (updatedProduct: AddProductFormData) => {
-            // Implement the update product action here
-            // For example:
-            // return await updateProduct(storeId, productId, updatedProduct);
+        mutationFn: () => updateProduct(storeId, productId, product ?? {}),
+        onSuccess: () => {
+            setIsDirty(false);
+            queryClient.invalidateQueries({ queryKey: ['product', productId] });
+            toast("Success",
+                {
+                    description: "Product updated successfully",
+                });
+        },
+        onError: (error) => {
+            console.error("Error updating product:", error);
+            toast.error("Error", {
+                description: "Failed to update product",
+            });
         }
     })
 
@@ -49,50 +65,41 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                 description: productData.description || '',
                 price: productData.price,
                 category: productData.category.name,
-                images: productData.images,
                 isAvailable: productData.isAvailable,
                 subOptions: productData.optionGroups || [],
+                uploadedImages: productData?.uploadedImages || [],
             });
-            setImagePreview(prev => [...prev, ...(productData.images || [])]);
-
         }
     }, [status]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
+        try {
+            // First, upload any pending images
+            const pendingCount = imageUploadRef.current?.getPendingCount() ?? 0;
 
+            if (pendingCount > 0) {
+                setIsUploadingImages(true);
+                toast("Uploading images", {
+                    description: `Uploading ${pendingCount} image(s)...`,
+                });
 
-        // Simulate API call
-        setTimeout(() => {
-            // Replace with actual API call
-            // await fetch(`/api/stores/${storeId}/products/${productId}`, {
-            //   method: 'PATCH',
-            //   body: JSON.stringify(product),
-            // });
-
-
-            router.push(`/stores/${storeId}/products`);
-        }, 1000);
-    };
-
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files) {
-            const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-            setImagePreview([...imagePreview, ...newImages]);
-            if (product) {
-                setProduct({ ...product, images: [...(product.images ?? []), ...newImages] });
+                await imageUploadRef.current?.uploadPendingFiles();
+                setIsUploadingImages(false);
             }
+
+            // Then save the product
+            mutate();
+        } catch (error) {
+            console.error("Error during save:", error);
+            setIsUploadingImages(false);
+            toast.error("Error", {
+                description: "Failed to upload images",
+            });
         }
     };
 
-    const removeImage = (index: number) => {
-        const newImages = imagePreview.filter((_, i) => i !== index);
-        setImagePreview(newImages);
-        if (product) {
-            setProduct({ ...product, images: newImages });
-        }
-    };
+    const isSaving = isPending || isUploadingImages;
+    const hasPendingImages = (imageUploadRef.current?.getPendingCount() ?? 0) > 0;
 
     if (status === 'pending') {
         return (
@@ -112,7 +119,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                     <p className="text-foreground text-lg">Product not found</p>
                     <Button
                         variant="outline"
-                        onClick={() => router.push(`/stores/${storeId}/products`)}
+                        onClick={() => router.push(`/dashboard/stores/${storeId}/products`)}
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Products
@@ -124,17 +131,50 @@ export default function EditProductPage({ params }: EditProductPageProps) {
 
     return (
         <>
-            <ProductForm mode="edit" product={product} onDirtyChange={setIsDirty} onChange={setProduct} storeId={storeId} />
+            <ProductForm
+                mode="edit"
+                product={{ id: productId, ...product }}
+                onDirtyChange={setIsDirty}
+                onChange={setProduct}
+                storeId={storeId}
+                imageUploadRef={imageUploadRef}
+            />
             <div className="sticky bottom-0 bg-background border-t hidden p-4 sm:flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
                 <div className="text-xs text-muted-foreground">
-                    <span>{isDirty ? "Changes not saved yet." : " "}</span>
+                    <span>
+                        {isUploadingImages
+                            ? "Uploading images..."
+                            : isDirty || hasPendingImages
+                                ? "Changes not saved yet."
+                                : " "}
+                    </span>
                 </div>
 
                 <div className="flex gap-3 sm:justify-end">
-                    <Button type="button" disabled={isPending || !isDirty} className="flex-1 sm:flex-none" onClick={handleSubmit}>
-                        <Save className="size-4" /> Save Product
+                    <Button
+                        type="button"
+                        disabled={isSaving || (!isDirty && !hasPendingImages)}
+                        className="flex-1 sm:flex-none"
+                        onClick={handleSubmit}
+                    >
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="size-4 animate-spin" />
+                                {isUploadingImages ? "Uploading..." : "Saving..."}
+                            </>
+                        ) : (
+                            <>
+                                <Save className="size-4" /> Save Product
+                            </>
+                        )}
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => window.history.back()} className="flex-1 sm:flex-none">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => window.history.back()}
+                        className="flex-1 sm:flex-none"
+                        disabled={isSaving}
+                    >
                         Cancel
                     </Button>
                 </div>

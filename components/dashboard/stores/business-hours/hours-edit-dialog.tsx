@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 import type { DayHours, DayKey, TimeRange, WeekHours } from "@/components/dashboard/stores/business-hours/time-utils";
 import {

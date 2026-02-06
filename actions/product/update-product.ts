@@ -70,7 +70,6 @@ export async function updateProduct(
             if (productData.description !== undefined) updatePayload.description = productData.description || null;
             if (categoryId) updatePayload.categoryId = categoryId;
             if (productData.price !== undefined) updatePayload.price = Math.round(productData.price * 100);
-            if (productData.image !== undefined) updatePayload.imageUrl = productData.image || null;
             if (productData.isAvailable !== undefined) updatePayload.isAvailable = productData.isAvailable;
 
             // Update product
@@ -96,7 +95,7 @@ export async function updateProduct(
                 }
 
                 // Insert new option groups and options
-                if (productData.subOptions.length > 0) {
+                if (productData.subOptions && productData.subOptions.length > 0) {
                     for (let i = 0; i < productData.subOptions.length; i++) {
                         const subOption = productData.subOptions[i];
 

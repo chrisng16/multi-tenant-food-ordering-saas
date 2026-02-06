@@ -22,6 +22,27 @@
       "when": 1770137560129,
       "tag": "0002_nice_tinkerer",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770276820523,
+      "tag": "0003_worried_praxagora",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1770277165336,
+      "tag": "0004_long_vindicator",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1770334760491,
+      "tag": "0005_cold_blazing_skull",
+      "breakpoints": true
     }
   ]
 }

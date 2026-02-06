@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { stores } from "@/db/schema";
-import { isReservedSlug } from "@/lib/reserved-slugs";
+import { isReservedSlug } from "@/lib/utils/reserved-slugs";
 import { storeSchema } from "@/schemas/store";
 import { eq } from "drizzle-orm";
 

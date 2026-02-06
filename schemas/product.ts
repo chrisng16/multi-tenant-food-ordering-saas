@@ -16,14 +16,41 @@ export const subOptionSchema = z.object({
     options: z.array(optionSchema).min(1, "At least one option is required"),
 })
 
+// Schema for uploaded images (edit mode - images already in database)
+export const uploadedImageSchema = z.object({
+    id: z.string(),
+    storeId: z.string(),
+    tag: z.enum(["logo", "product", "banner", "profile"]),
+    filename: z.string(),
+    url: z.string().url(),
+    key: z.string(),
+    size: z.number(),
+    mimeType: z.string(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+})
+
+// Schema for pending images (create mode - files not yet uploaded)
+export const pendingImageSchema = z.object({
+    id: z.string(),
+    file: z.instanceof(File),
+    preview: z.string(),
+    filename: z.string(),
+    size: z.number(),
+    mimeType: z.string(),
+})
+
 export const addProductSchema = z.object({
     name: z.string().min(1, "Product name is required").min(3, "Name must be at least 3 characters"),
     description: z.string().nullable().or(z.literal("")),
     price: z.number().min(0.01, "Price must be greater than 0"),
     category: z.string().min(1, "Category is required"),
-    images: z.array(z.string().url("Please enter a valid image URL")).nullable(),
     isAvailable: z.boolean(),
     subOptions: z.array(subOptionSchema).nullable(),
+    // For edit mode - uploaded images with full metadata
+    uploadedImages: z.array(uploadedImageSchema).optional().nullable(),
+    // For create mode - pending images waiting to be uploaded
+    pendingImages: z.array(pendingImageSchema).optional().nullable(),
 })
 
 export type AddProductFormData = z.infer<typeof addProductSchema>

@@ -1,4 +1,4 @@
-import { isReservedSlug } from "@/lib/reserved-slugs"
+import { isReservedSlug } from "@/lib/utils/reserved-slugs"
 import z from "zod"
 
 export const storeSchema = z.object({

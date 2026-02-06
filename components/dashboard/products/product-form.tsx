@@ -1,5 +1,6 @@
 "use client"
 
+import { ImageUpload, ImageUploadRef } from '@/components/dashboard/products/image-upload/image-upload'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -9,23 +10,32 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/in
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { centsToDollars } from "@/lib/utils"
+import { centsToDollars } from "@/lib/utils/utils"
 import { AddProductFormData, addProductSchema, PRESET_CATEGORIES } from "@/schemas/product"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ChevronDown, ChevronUp, Info, Plus, Trash2, X } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { RefObject, useEffect, useMemo, useState } from "react"
 import { useFieldArray, useForm } from "react-hook-form"
-import { ImageUploader } from "./image-uploader/image-uploader"
 
-interface AddProductFormProps {
+interface ProductFormProps {
     mode: "create" | "edit"
-    product?: AddProductFormData | undefined
+    product?: AddProductFormData & { id: string } | undefined
     storeId?: string
     onDirtyChange?: (isDirty: boolean) => void
+    onValidChange?: (isValid: boolean) => void
     onChange: (product: AddProductFormData) => void
+    imageUploadRef?: RefObject<ImageUploadRef | null>
 }
 
-export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }: AddProductFormProps) {
+export function ProductForm({
+    mode,
+    product,
+    storeId,
+    onDirtyChange,
+    onValidChange,
+    onChange,
+    imageUploadRef
+}: ProductFormProps) {
     const form = useForm<AddProductFormData>({
         resolver: zodResolver(addProductSchema),
         defaultValues: {
@@ -33,7 +43,8 @@ export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }:
             description: product?.description || "",
             price: Number(centsToDollars(product?.price || 0)),
             category: product?.category || "",
-            images: product?.images || [],
+            uploadedImages: product?.uploadedImages || [],
+            pendingImages: product?.pendingImages || [],
             isAvailable: product?.isAvailable ?? true,
             subOptions: product?.subOptions || [],
         },
@@ -85,8 +96,16 @@ export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }:
     useEffect(() => {
         if (onDirtyChange) {
             onDirtyChange(isDirty)
+            console.log("Form dirty state changed:", isDirty)
         }
     }, [isDirty, onDirtyChange])
+
+    useEffect(() => {
+        if (onValidChange) {
+            onValidChange(isValid)
+            console.log("Form valid state changed:", isValid)
+        }
+    }, [isValid, onValidChange])
 
     const handleAddSubOption = () => {
         subOptionsField.append({
@@ -103,21 +122,34 @@ export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }:
         if (openOptionId === removed?.id) setOpenOptionId(null)
     }
 
+    // Handle uploaded images (edit mode)
+    const handleUploadedImagesChange = (images: unknown) => {
+        setValue("uploadedImages", images as any, { shouldDirty: true })
+    }
+
+    // Handle pending images (create mode)
+    const handlePendingImagesChange = (files: File[]) => {
+        setValue("pendingImages", files as any, { shouldDirty: true })
+    }
+
     return (
         <div className='pb-[var(--mobile-padding-bottom)] sm:pb-0 space-y-4 md:space-y-6 px-4 md:px-6'>
             {/* Header */}
-
             <header className="flex items-start justify-between gap-4 pt-4 md:pt-6">
                 <div>
-                    <h2 className="text-xl font-semibold leading-tight">{mode === "create" ? "Add New Product" : "Edit Product"}</h2>
+                    <h2 className="text-xl font-semibold leading-tight">
+                        {mode === "create" ? "Add New Product" : "Edit Product"}
+                    </h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                        {mode === "create" ? "Create a new product for your menu. Use Options for sizes, add-ons, or variations." : "Manage your product details and availability."}
+                        {mode === "create"
+                            ? "Create a new product for your menu. Images will be uploaded when you save."
+                            : "Manage your product details and availability."}
                     </p>
                 </div>
             </header>
+
             <div className="space-y-4 md:space-y-6">
-                {/* Images panel */}
-                <ImageUploader storeId={storeId!} onImagesUploaded={(value) => { form.setValue("images", value) }} />
+
 
                 <form className="space-y-4 md:space-y-6">
                     {/* Core panel */}
@@ -150,9 +182,7 @@ export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }:
                                 </FieldContent>
                             </Field>
                             <Field>
-                                <FieldLabel>
-                                    Product Status
-                                </FieldLabel>
+                                <FieldLabel>Product Status</FieldLabel>
                                 <FieldContent>
                                     <Select
                                         value={watch("isAvailable") ? "available" : "not_available"}
@@ -173,7 +203,10 @@ export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }:
                                 <FieldLabel>Category</FieldLabel>
                                 <div className="relative">
                                     <InputGroup>
-                                        <CategoryInput value={watch("category")} onChange={(val) => setValue("category", val)} />
+                                        <CategoryInput
+                                            value={watch("category")}
+                                            onChange={(val) => setValue("category", val)}
+                                        />
                                         <InputGroupAddon align={"inline-end"}>
                                             <TooltipProvider>
                                                 <Tooltip>
@@ -191,24 +224,28 @@ export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }:
                                 <FieldError>{errors.category?.message as unknown as string}</FieldError>
                             </Field>
 
-                            <Field className="col-span-1 md:col-span-2">
+                            <Field className="col-span-1 md:grid-cols-2">
                                 <FieldLabel>Description</FieldLabel>
                                 <FieldContent>
-                                    <Textarea placeholder="Describe your product..." rows={3} {...register("description")} />
+                                    <Textarea
+                                        placeholder="Describe your product..."
+                                        rows={3}
+                                        {...register("description")}
+                                    />
                                     <FieldError>{errors.description?.message as unknown as string}</FieldError>
                                 </FieldContent>
                             </Field>
-
                         </CardContent>
                     </Card>
-
 
                     {/* Options */}
                     <Card>
                         <CardHeader className="flex items-start justify-between gap-4">
                             <div>
                                 <CardTitle>Options</CardTitle>
-                                <CardDescription>Let users customize the product with various options</CardDescription>
+                                <CardDescription>
+                                    Let users customize the product with various options
+                                </CardDescription>
                             </div>
                             <Button type="button" variant="outline" size="sm" onClick={handleAddSubOption}>
                                 <Plus className="size-4" />
@@ -218,7 +255,7 @@ export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }:
                         <CardContent>
                             {subOptionsField.fields.length === 0 ? (
                                 <div className="mt-4 rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                                    No options added yet. Click “Add Option” to create size, add-ons, or other variations.
+                                    No options added yet. Click "Add Option" to create size, add-ons, or other variations.
                                 </div>
                             ) : (
                                 <div className="mt-4 space-y-3">
@@ -276,7 +313,6 @@ export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }:
                                                             <FieldError>
                                                                 {(errors.subOptions as any)?.[index]?.name?.message as unknown as string}
                                                             </FieldError>
-
                                                         </Field>
 
                                                         <Field orientation="horizontal">
@@ -286,14 +322,21 @@ export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }:
                                                                     onCheckedChange={(val) => setValue(`subOptions.${index}.required`, !!val)}
                                                                     id={`option-required-checkbox-${index}`}
                                                                 />
-                                                                <FieldLabel className="!m-0 font-normal cursor-pointer" htmlFor={`option-required-checkbox-${index}`}>
+                                                                <FieldLabel
+                                                                    className="!m-0 font-normal cursor-pointer"
+                                                                    htmlFor={`option-required-checkbox-${index}`}
+                                                                >
                                                                     This option is required
                                                                 </FieldLabel>
-
                                                             </div>
                                                         </Field>
 
-                                                        <SubOptionItems control={control} subOptionIndex={index} register={register} errors={errors} />
+                                                        <SubOptionItems
+                                                            control={control}
+                                                            subOptionIndex={index}
+                                                            register={register}
+                                                            errors={errors}
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
@@ -303,10 +346,32 @@ export function ProductForm({ mode, product, storeId, onDirtyChange, onChange }:
                             )}
                         </CardContent>
                     </Card>
-
                 </form>
+                {/* Images panel */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Product Images</CardTitle>
+                        <CardDescription>
+                            {mode === "create"
+                                ? "Add images now. They'll be uploaded when you save the product."
+                                : "Add or remove product images. Upload happens when you save."}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ImageUpload
+                            ref={imageUploadRef}
+                            storeId={storeId || ""}
+                            productId={mode === "edit" ? product?.id : undefined}
+                            tag="product"
+                            maxImages={10}
+                            existingImages={product?.uploadedImages || []}
+                            onImagesChange={handleUploadedImagesChange}
+                            onPendingChange={handlePendingImagesChange}
+                        />
+                    </CardContent>
+                </Card>
             </div>
-        </div >
+        </div>
     )
 }
 
@@ -324,7 +389,9 @@ function CategoryInput({ value, onChange }: CategoryInputProps) {
 
     useEffect(() => setInputValue(value), [value])
 
-    const filteredCategories = PRESET_CATEGORIES.filter((cat) => cat.toLowerCase().includes(inputValue.toLowerCase()))
+    const filteredCategories = PRESET_CATEGORIES.filter((cat) =>
+        cat.toLowerCase().includes(inputValue.toLowerCase())
+    )
 
     const handleSelect = (category: string) => {
         setInputValue(category)
@@ -369,7 +436,7 @@ function CategoryInput({ value, onChange }: CategoryInputProps) {
                                 <button
                                     key={category}
                                     type="button"
-                                    onMouseDown={(e) => e.preventDefault()} // prevents blur before click
+                                    onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => handleSelect(category)}
                                     className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
                                 >
@@ -405,15 +472,16 @@ function SubOptionItems({
         name: `subOptions.${subOptionIndex}.options`,
     })
 
-    useEffect(() => {
-        console.log("SubOptionItems errors:", errors)
-    }, [errors])
-
     return (
         <div className="space-y-3 pl-4 border-l-2 border-muted pb-2">
             <div className="flex items-center justify-between">
                 <div className="text-sm font-medium">Option Items</div>
-                <Button type="button" variant="outline" size="sm" onClick={() => optionsField.append({ id: "", name: "", price: 0 })}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => optionsField.append({ id: "", name: "", price: 0 })}
+                >
                     <Plus className="size-3" />
                     <span className="hidden sm:flex">Add Item</span>
                 </Button>
@@ -433,16 +501,23 @@ function SubOptionItems({
                         min="0"
                         placeholder="0.00"
                         className="h-8 w-20"
-                        {...register(`subOptions.${subOptionIndex}.options.${itemIndex}.price`, { valueAsNumber: true })}
+                        {...register(`subOptions.${subOptionIndex}.options.${itemIndex}.price`, {
+                            valueAsNumber: true
+                        })}
                     />
 
-                    <Button type="button" variant="ghost" size="icon-sm" onClick={() => optionsField.remove(itemIndex)} aria-label="Remove item">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => optionsField.remove(itemIndex)}
+                        aria-label="Remove item"
+                    >
                         <X className="size-3" />
                     </Button>
                 </div>
             ))}
 
-            {/* Optional: show nested errors if needed */}
             <FieldError>
                 {(errors.options as any)?.[subOptionIndex]?.subOptions?.message as unknown as string}
             </FieldError>

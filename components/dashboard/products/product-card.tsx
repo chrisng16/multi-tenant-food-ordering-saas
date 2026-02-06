@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Product } from "@/db/schema"
-import { centsToDollars } from "@/lib/utils"
+import { centsToDollars } from "@/lib/utils/utils"
 import { Edit, Package } from "lucide-react"
 import Link from "next/link"
 

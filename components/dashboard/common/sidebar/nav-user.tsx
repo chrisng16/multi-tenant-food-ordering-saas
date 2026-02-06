@@ -29,16 +29,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-import { authClient } from "@/lib/auth-client"
+import { authClient } from "@/lib/auth/auth-client"
 import { User } from "better-auth"
 import { redirect } from "next/navigation"
 
-export function NavUser({user}: {user:User}) {
+export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar()
 
   const handleSignout = async () => {
-      await authClient.signOut();
-      redirect("/")
+    await authClient.signOut();
+    redirect("/")
   }
 
   return (

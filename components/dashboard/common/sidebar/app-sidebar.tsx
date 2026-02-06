@@ -29,7 +29,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { isPathActive } from "@/lib/utils"
+import { isPathActive } from "@/lib/utils/utils"
 import { User } from "better-auth"
 import { usePathname } from "next/navigation"
 
@@ -119,7 +119,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   user: User
 }
 
-export function AppSidebar({user, ...props }: AppSidebarProps) {
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const pathname = usePathname()
 
   const withActive = <T extends { url: string }>(items: T[]) =>
@@ -151,7 +151,7 @@ export function AppSidebar({user, ...props }: AppSidebarProps) {
         <NavSecondary items={withActive(data.navSecondary)} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user}/>
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   )

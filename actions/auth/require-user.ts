@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 import { ActionResult } from "@/types/actions/action-result";
 import { headers } from "next/headers";
 

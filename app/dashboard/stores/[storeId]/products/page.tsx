@@ -23,9 +23,12 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
     const { storeId } = use(params)
     const [showAddForm, setShowAddForm] = useState<boolean>(false)
     const [newProduct, setNewProduct] = useState<AddProductFormData | null>(null)
+    const [isDirty, setIsDirty] = useState<boolean>(false)
+    const [isValid, setIsValid] = useState<boolean>(false)
 
     const queryClient = useQueryClient();
     const handleAddProduct = () => setShowAddForm(true)
+
     const { isPending, mutateAsync } = useMutation({
         mutationFn: (newProduct: AddProductFormData) => addProduct(storeId, newProduct),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products', storeId] }),
@@ -76,6 +79,8 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
                 <ProductForm
                     mode="create"
                     onChange={setNewProduct}
+                    onDirtyChange={setIsDirty}
+                    onValidChange={setIsValid}
                 />
             ) :
                 <ProductCardDisplay storeId={storeId} />
@@ -86,7 +91,7 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
                     type="submit"
                     className="flex-1 sm:flex-none"
                     onClick={handleSubmit}
-                    disabled={isPending}
+                    disabled={!isDirty || !isValid || isPending}
                 >
                     <Save className="size-4" />
                     {isPending ? "Saving..." : "Save Product"}
@@ -104,7 +109,7 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
             <MobileActionBar>
                 {showAddForm ?
                     <MABTemplate showRightButton={false} leftButton={<LeftButton onClick={() => setShowAddForm(false)} />}>
-                        <QuickActionButton className="w-full" onClick={handleSubmit} icon={Save} label={"Save Product"} ariaLabel={"Create Product"} />
+                        <QuickActionButton className="w-full" onClick={handleSubmit} disabled={!isDirty || !isValid || isPending} icon={Save} label={"Save Product"} ariaLabel={"Create Product"} />
                     </MABTemplate> :
                     <MABTemplate showRightButton={false} showLeftButton={false}>
                         <QuickActionButton className="w-full" onClick={() => setShowAddForm(true)} label={"Add Product"} ariaLabel={"Add Product"} icon={Plus} />
