@@ -5,8 +5,9 @@ import SearchDialog from "@/components/dashboard/common/dashboard-header/search-
 import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
 import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar/mobile-action-bar"
 import QuickActionButton from "@/components/dashboard/common/mobile-action-bar/quick-action-button"
-import ProductCardDisplay from "@/components/dashboard/products/product-card-display"
 import { ProductForm } from "@/components/dashboard/products/product-form"
+import ProductsDisplay from "@/components/dashboard/products/products-display"
+
 import { Button } from "@/components/ui/button"
 import { AddProductFormData } from "@/schemas/product"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -24,6 +25,7 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
     const { storeId } = use(params)
     const [showAddForm, setShowAddForm] = useState<boolean>(false)
     const [newProduct, setNewProduct] = useState<AddProductFormData | null>(null)
+
     const [isDirty, setIsDirty] = useState<boolean>(false)
     const [isValid, setIsValid] = useState<boolean>(false)
 
@@ -62,20 +64,6 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
 
     return (
         <>
-            {!showAddForm && (
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-4 md:p-6 pb-0 md:pb-0">
-                    <div>
-                        <h1 className="text-xl font-bold tracking-tight">Products</h1>
-                        <p className="text-muted-foreground">Manage your store's products and menu items</p>
-                    </div>
-                    <Button onClick={handleAddProduct} className="hidden sm:flex sm:w-auto">
-                        <Plus className="size-4" />
-                        Add Product
-                    </Button>
-                </div >
-            )
-            }
-
             {showAddForm ? (
                 <ProductForm
                     mode="create"
@@ -84,7 +72,7 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
                     onValidChange={setIsValid}
                 />
             ) :
-                <ProductCardDisplay storeId={storeId} />
+                <ProductsDisplay storeId={storeId} />
             }
 
             {showAddForm && <div className="sticky bottom-0 bg-background hidden sm:flex gap-3 sm:justify-end border-t p-4">
