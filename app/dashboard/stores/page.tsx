@@ -88,7 +88,7 @@ export default function StoresPage() {
         <>
             <div className="flex flex-col gap-4 p-4 md:p-6 pb-0 md:pb-0 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+                    <h1 className="text-xl font-bold tracking-tight">
                         My Stores
                     </h1>
                     <p className="text-muted-foreground">

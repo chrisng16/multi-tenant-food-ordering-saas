@@ -2,6 +2,9 @@
 
 import { getProduct } from '@/actions/product/get-product';
 import { updateProduct } from '@/actions/product/update-product';
+import MABTemplate from '@/components/dashboard/common/mobile-action-bar/mab-template';
+import { MobileActionBar } from '@/components/dashboard/common/mobile-action-bar/mobile-action-bar';
+import QuickActionButton from '@/components/dashboard/common/mobile-action-bar/quick-action-button';
 import { ImageUploadRef } from '@/components/dashboard/products/image-upload/image-upload';
 import { ProductForm } from '@/components/dashboard/products/product-form';
 import { Button } from '@/components/ui/button';
@@ -11,6 +14,7 @@ import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { isValid } from 'zod/v3';
 
 interface EditProductPageProps {
     params: Promise<{
@@ -179,6 +183,11 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                     </Button>
                 </div>
             </div>
+            <MobileActionBar>
+                <MABTemplate showRightButton={false}>
+                    <QuickActionButton className="w-full" onClick={handleSubmit} disabled={!isDirty || !isValid || isPending} icon={Save} label={"Save Product"} ariaLabel={"Create Product"} />
+                </MABTemplate>
+            </MobileActionBar >
         </>
     );
 }

@@ -7,7 +7,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ChevronDown } from "lucide-react"
+import { ChevronsUpDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface CompactStoreSwitcherProps {
@@ -36,12 +36,14 @@ export function CompactStoreSwitcher({ currentStoreId, stores, type = 'stores' }
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 px-2 hover:bg-accent">
-                    <span className="font-medium">{currentStore.name}</span>
-                    <ChevronDown className="ml-2 h-3 w-3" />
-                </Button>
-            </DropdownMenuTrigger>
+            <div className="flex items-center gap-1">
+                <span>{currentStore.name}</span>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon-sm">
+                        <ChevronsUpDown className="size-3.5" />
+                    </Button>
+                </DropdownMenuTrigger>
+            </div>
             <DropdownMenuContent align="start" className="w-48">
                 {stores.map((store) => (
                     <DropdownMenuItem

@@ -1,6 +1,7 @@
 "use client"
 
 import { addProduct } from "@/actions/product/add-product"
+import SearchDialog from "@/components/dashboard/common/dashboard-header/search-dialog"
 import MABTemplate from "@/components/dashboard/common/mobile-action-bar/mab-template"
 import { MobileActionBar } from "@/components/dashboard/common/mobile-action-bar/mobile-action-bar"
 import QuickActionButton from "@/components/dashboard/common/mobile-action-bar/quick-action-button"
@@ -64,7 +65,7 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
             {!showAddForm && (
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-4 md:p-6 pb-0 md:pb-0">
                     <div>
-                        <h1 className="text-xl md:text-2xl font-bold tracking-tight">Products</h1>
+                        <h1 className="text-xl font-bold tracking-tight">Products</h1>
                         <p className="text-muted-foreground">Manage your store's products and menu items</p>
                     </div>
                     <Button onClick={handleAddProduct} className="hidden sm:flex sm:w-auto">
@@ -108,19 +109,14 @@ export default function StoreProductsPage({ params }: StoreProductsPageProps) {
 
             <MobileActionBar>
                 {showAddForm ?
-                    <MABTemplate showRightButton={false} leftButton={<LeftButton onClick={() => setShowAddForm(false)} />}>
+                    <MABTemplate showRightButton={false} leftButton={<QuickActionButton ariaLabel={"Cancel"} icon={X} onClick={() => setShowAddForm(false)} />}>
                         <QuickActionButton className="w-full" onClick={handleSubmit} disabled={!isDirty || !isValid || isPending} icon={Save} label={"Save Product"} ariaLabel={"Create Product"} />
                     </MABTemplate> :
-                    <MABTemplate showRightButton={false} showLeftButton={false}>
+                    <MABTemplate rightButton={<SearchDialog />}>
                         <QuickActionButton className="w-full" onClick={() => setShowAddForm(true)} label={"Add Product"} ariaLabel={"Add Product"} icon={Plus} />
                     </MABTemplate>
                 }
             </MobileActionBar >
-
         </>
     )
-}
-
-function LeftButton({ onClick }: { onClick: () => void }) {
-    return <QuickActionButton ariaLabel={"Cancel"} icon={X} onClick={onClick} />
 }

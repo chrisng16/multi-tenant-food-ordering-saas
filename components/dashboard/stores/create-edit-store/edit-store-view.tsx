@@ -44,14 +44,14 @@ export function EditStoreView({
         <>
             <div className="flex items-center justify-between p-4 md:p-6 pb-0 md:pb-0">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">Edit Store</h1>
+                    <h1 className="text-xl font-bold tracking-tight">Edit Store</h1>
                     <p className="text-sm md:text-base text-muted-foreground">
                         Edit your store settings and preferences
                     </p>
                 </div>
                 <div className="flex gap-2">
                     <Button size="sm" className="xl:hidden hidden sm:flex w-auto" asChild>
-                        <Link href={`/dashboard/stores/${store.id}`}>
+                        <Link href={`/store/${store.id}`}>
                             <StoreIcon className="h-4 w-4" />
                             <span className="inline">View Store</span>
                         </Link>
@@ -131,7 +131,7 @@ function QuickActions({ storeId }: { storeId: string }) {
                 </Link>
             </Button>
             <Button size="sm" className="w-full" asChild>
-                <Link href={`/dashboard/stores/${storeId}`}>
+                <Link href={`/store/${storeId}`}>
                     <StoreIcon className="h-4 w-4" />
                     <span className="inline">View Store</span>
                 </Link>
@@ -152,7 +152,7 @@ export function MiniQuickActions({ storeId }: { storeId: string }) {
                 <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
                 <DropdownMenuGroup>
                     <DropdownMenuItem asChild className="flex sm:hidden">
-                        <Link href={`/dashboard/stores/${storeId}`}>
+                        <Link href={`/store/${storeId}`}>
                             <StoreIcon className="h-4 w-4" />
                             <span className="inline">View Store</span>
                         </Link>
@@ -199,7 +199,7 @@ export function ActionBarQuickActions({ store }: { store: { id: string } }) {
                 <div className="flex flex-col p-6 pt-0 space-y-4">
                     <DrawerClose asChild>
                         <Button variant="secondary" asChild>
-                            <Link href={`/dashboard/stores/${store.id}`}>
+                            <Link href={`/store/${store.id}`}>
                                 <StoreIcon className="h-4 w-4" />
                                 <span className="inline">View Store</span>
                             </Link>
